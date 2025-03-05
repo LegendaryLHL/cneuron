@@ -1,10 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-#define STB_IMAGE_IMPLEMENTATION
-#include "lib/stb_image.h"
-#define STB_IMAGE_WRITE_IMPLEMENTATION
-#include "lib/stb_image_write.h"
 #include <dirent.h>
 #include <sys/types.h>
 #include <time.h>
