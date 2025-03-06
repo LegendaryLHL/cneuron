@@ -1,4 +1,8 @@
+#include "stb_image.h"
+#include "stb_image_write.h"
+
 #include <stdio.h>
+#include <string.h>
 #include <stdlib.h>
 #include <math.h>
 #include <dirent.h>
@@ -299,7 +303,7 @@ void layerLearnOutput(NeuralNetwork *nn, Layer *previousLayer, Layer *layer, dou
     }
 }
 
-void layerLearnIntermediate(NeuralNetwork *nn, Layer *previousLayer, Layer *layer, Layer *nextLayer, double learnRate, double (*activationFunction)(double, int))
+void layerLearnIntermediate(Layer *previousLayer, Layer *layer, Layer *nextLayer, double learnRate, double (*activationFunction)(double, int))
 {
     for (int i = 0; i < layer->size; i++)
     {
@@ -328,7 +332,7 @@ void learn(NeuralNetwork *nn, double learnRate, Data *trainingData, int numData)
         layerLearnOutput(nn, (nn->numHiddenLayer == 0) ? &nn->inputLayer : &nn->hiddenLayers[nn->numHiddenLayer - 1], &nn->outputLayer, learnRate, &trainingData[i], nn->activationFunction);
         for (int j = nn->numHiddenLayer - 1; j >= 0; j--)
         {
-            layerLearnIntermediate(nn, (j == 0) ? &nn->inputLayer : &nn->hiddenLayers[j - 1], &nn->hiddenLayers[j], (j == nn->numHiddenLayer - 1) ? &nn->outputLayer : &nn->hiddenLayers[j + 1], learnRate, nn->activationFunction);
+            layerLearnIntermediate((j == 0) ? &nn->inputLayer : &nn->hiddenLayers[j - 1], &nn->hiddenLayers[j], (j == nn->numHiddenLayer - 1) ? &nn->outputLayer : &nn->hiddenLayers[j + 1], learnRate, nn->activationFunction);
         }
     }
 }
@@ -773,8 +777,7 @@ int main()
             printf("Enter your input in the window and press enter...\n");
             while (1)
             {
-                char *file_contents;
-                system("python input.py");
+                system("python3 input.py");
 
                 // Open the file for reading
                 fp = fopen("output/grid_array.txt", "r");

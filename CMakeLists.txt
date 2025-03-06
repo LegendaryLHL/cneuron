@@ -16,12 +16,13 @@ add_executable(${PROJECT_NAME} ${SRC_FILES})
 
 target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_SOURCE_DIR}/include ${CMAKE_SOURCE_DIR}/external)
 
-target_link_libraries(${PROJECT_NAME} PRIVATE ExternalLib)
+target_link_libraries(${PROJECT_NAME} PRIVATE ExternalLib m)
 
 target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -Wpedantic)
 
 message(STATUS "Checking and copying data and input.py to the build directory...")
 file(COPY ${CMAKE_SOURCE_DIR}/data ${CMAKE_SOURCE_DIR}/input.py DESTINATION ${CMAKE_BINARY_DIR})
+file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/output)
 
 add_custom_target(run
     COMMAND ${CMAKE_BINARY_DIR}/${PROJECT_NAME}
