@@ -548,7 +548,7 @@ Data *populateDataSet(int *numData, int maxEachDigit, int *currentPos)
                 count++;
                 char filepath[256];
                 sprintf(filepath, "%s/%s", subdirectory, entry->d_name);
-                Data newData = dataFromImage(filepath, randomFloat(-10, 10), randomFloat(0.9, 1.1), randomFloat(-3, 3), randomFloat(-3, 3), 0.1, 0.1);
+                Data newData = dataFromImage(filepath, randomFloat(-5, 5), randomFloat(0.95, 1.05), randomFloat(-3, 3), randomFloat(-3, 3), 0.05, 0.05);
                 *numData += 1;
                 dataSet = realloc(dataSet, sizeof(Data) * (*numData));
                 dataSet[*numData - 1] = newData;
@@ -678,7 +678,14 @@ double testNetworkPercent(NeuralNetwork *nn)
                 Data testData = dataFromImage(filepath, 0, 1, 0, 0, 0, 0);
                 addInputs(nn, testData.inputs);
                 computeNetwork(nn);
-                if (outputNeuronPercentActivate(nn, testData.expected) >= 50.0)
+                int max = 0;
+                for (int i = 1; i < 10; i++) {
+                    if(outputNeuronPercentActivate(nn, i) > outputNeuronPercentActivate(nn, 0)){
+                        max = i;
+                    }
+                }
+
+                if (max == testData.expected)
                 {
                     correct++;
                 }
@@ -734,7 +741,7 @@ int main()
     // Parameters
     int maxEach = 10;
     double learnRate = 0.03;
-    int learnAmount = 10000;
+    int learnAmount = 1000;
     int epochAmount = 64;
 
     char cmd[100];
@@ -777,7 +784,7 @@ int main()
             printf("Enter your input in the window and press enter...\n");
             while (1)
             {
-                system("python3 input.py");
+                system("python3 -W ignore input.py");
 
                 // Open the file for reading
                 fp = fopen("output/grid_array.txt", "r");
