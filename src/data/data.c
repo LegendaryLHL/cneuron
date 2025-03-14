@@ -38,13 +38,14 @@ data_t **get_dataset(const char *filename, unsigned int *dataset_length, unsigne
 
 void free_dataset(data_t **dataset, unsigned int dataset_length) {
     for (unsigned int i = 0; i < dataset_length; i++) {
-        free_data(dataset[i]);
+        free(dataset[i]->inputs);
     }
     free(dataset);
 }
 
 void free_data(data_t *data) {
     free(data->inputs);
+    free(data);
 }
 
 data_t *get_data_copy(data_t* data, unsigned int inputs_length) {
@@ -52,9 +53,9 @@ data_t *get_data_copy(data_t* data, unsigned int inputs_length) {
 
     copy->neuron_index = data->neuron_index;
 
-    size_t input_size = sizeof(float) * inputs_length;
-    copy->inputs = malloc(input_size);
-    memcpy(copy->inputs, data->inputs, input_size);
+    size_t inputs_size = sizeof(float) * inputs_length;
+    copy->inputs = malloc(inputs_size);
+    memcpy(copy->inputs, data->inputs, inputs_size);
 
     return copy;
 }
