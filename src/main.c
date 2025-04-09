@@ -46,13 +46,13 @@ void train(neural_network_t *nn, dataset_t *dataset, dataset_t *test_dataset, fl
 
 dataset_t *get_mnist(int is_test) {
     char dir[512];
-    sprintf(dir, "data/mnist/%s", is_test ? "test" : "train");
+    snprintf(dir, sizeof(dir), "data/mnist/%s", is_test ? "test" : "train");
 
     dataset_t **datasets = malloc(sizeof(dataset_t *) * 10);
 
     for (size_t i = 0; i <= 9; i++) {
         char filepath[518];
-        sprintf(filepath, "%s/%zu.dat", dir, i);
+        snprintf(filepath, sizeof(filepath), "%s/%zu.dat", dir, i);
         dataset_t *read_dataset = get_dataset(filepath);
         if (!read_dataset) {
             printf("Failed to load mnist dataset for digit %zu\n", i);

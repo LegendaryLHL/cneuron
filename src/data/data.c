@@ -6,28 +6,61 @@
 #include <string.h>
 
 dataset_t *get_dataset(const char *filename) {
-    dataset_t *dataset = malloc(sizeof(dataset_t));
-
     FILE *file = fopen(filename, "rb");
     if (!file) {
-        printf("Error opening %s for reading data set\n", filename);
-        free(dataset);
+        fprintf(stderr, "Error opening %s for reading data set\n", filename);
         return NULL;
     }
 
-    fread(&dataset->length, sizeof(size_t), 1, file);
-    dataset->datas = malloc(sizeof(data_t *) * dataset->length);
+    dataset_t *dataset = malloc(sizeof(dataset_t));
+    if (!dataset) {
+        fclose(file);
+        return NULL;
+    }
 
-    fread(&dataset->inputs_length, sizeof(size_t), 1, file);
+    if (fread(&dataset->length, sizeof(size_t), 1, file) != 1) {
+        fprintf(stderr, "Error reading dataset length from %s\n", filename);
+        free(dataset);
+        fclose(file);
+        return NULL;
+    }
+
+    dataset->datas = calloc(dataset->length, sizeof(data_t *));
+    if (!dataset->datas) {
+        free(dataset);
+        fclose(file);
+        return NULL;
+    }
+
+    if (fread(&dataset->inputs_length, sizeof(size_t), 1, file) != 1) {
+        fprintf(stderr, "Error reading inputs_length from %s\n", filename);
+        free(dataset);
+        fclose(file);
+        return NULL;
+    }
+
     for (size_t i = 0; i < dataset->length; i++) {
         data_t *data = malloc(sizeof(data_t));
+        if (!data) goto cleanup;
+
         data->inputs = malloc(sizeof(float) * dataset->inputs_length);
-        size_t read_count = fread(data->inputs, sizeof(float), dataset->inputs_length, file);
-        if (read_count != dataset->inputs_length) {
-            printf("Error reading data\n");
-            return NULL;
+        if (!data->inputs) {
+            free(data);
+            goto cleanup;
         }
-        fread(&(data->expected_index), sizeof(size_t), 1, file);
+
+        size_t read_inputs = fread(data->inputs, sizeof(float), dataset->inputs_length, file);
+        if (read_inputs != dataset->inputs_length) {
+            fprintf(stderr, "Error reading inputs_length from %s. Expected: %zu. But found: %zu\n", filename, dataset->inputs_length, read_inputs);
+            free_data(data);
+            goto cleanup;
+        }
+
+        if (fread(&(data->expected_index), sizeof(size_t), 1, file) != 1) {
+            fprintf(stderr, "Error reading expected_index from %s\n", filename);
+            free_data(data);
+            goto cleanup;
+        }
 
         dataset->datas[i] = data;
     }
@@ -35,9 +68,15 @@ dataset_t *get_dataset(const char *filename) {
     fclose(file);
 
     return dataset;
+
+cleanup:
+    free_dataset(dataset);
+    fclose(file);
+    return NULL;
 }
 
 void free_dataset(dataset_t *dataset) {
+    if (!dataset) return;
     for (size_t i = 0; i < dataset->length; i++) {
         free_data(dataset->datas[i]);
     }
@@ -46,17 +85,26 @@ void free_dataset(dataset_t *dataset) {
 }
 
 void free_data(data_t *data) {
+    if (!data) return;
     free(data->inputs);
     free(data);
 }
 
 data_t *get_data_copy(const data_t *data, size_t inputs_length) {
     data_t *copy = malloc(sizeof(data_t));
+    if (!copy) {
+        return NULL;
+    }
 
     copy->expected_index = data->expected_index;
 
     size_t inputs_size = sizeof(float) * inputs_length;
     copy->inputs = malloc(inputs_size);
+    if (!copy->inputs) {
+        free(copy);
+        return NULL;
+    }
+
     memcpy(copy->inputs, data->inputs, inputs_size);
 
     return copy;
