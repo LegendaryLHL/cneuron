@@ -1,6 +1,7 @@
 #include "data/data.h"
 
 #include <assert.h>
+#include <stdint.h>
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -23,7 +24,7 @@ dataset_t *get_dataset(const char *filename) {
         return NULL;
     }
 
-    if (fread(&dataset->length, sizeof(size_t), 1, file) != 1) {
+    if (fread(&dataset->length, sizeof(uint64_t), 1, file) != 1) {
         fprintf(stderr, "Error reading dataset length from %s\n", filename);
         free(dataset);
         fclose(file);
@@ -37,7 +38,7 @@ dataset_t *get_dataset(const char *filename) {
         return NULL;
     }
 
-    if (fread(&dataset->inputs_length, sizeof(size_t), 1, file) != 1) {
+    if (fread(&dataset->inputs_length, sizeof(uint64_t), 1, file) != 1) {
         fprintf(stderr, "Error reading inputs_length from %s\n", filename);
         free(dataset);
         fclose(file);
@@ -63,7 +64,7 @@ dataset_t *get_dataset(const char *filename) {
             goto cleanup;
         }
 
-        if (fread(&(data->expected_index), sizeof(size_t), 1, file) != 1) {
+        if (fread(&(data->expected_index), sizeof(uint64_t), 1, file) != 1) {
             fprintf(stderr, "Error reading expected_index from %s\n", filename);
             free_data(data);
             goto cleanup;
@@ -140,8 +141,8 @@ void rotate_data(data_t *data, int width, int height, float angle) {
 
     for (int y = 0; y < height; y++) {
         for (int x = 0; x < width; x++) {
-            int center_x = width / 2;
-            int center_y = height / 2;
+            int center_x = round(width / 2.0f);
+            int center_y = round(height / 2.0f);
             int src_x = round((x - center_x) * cos_angle + (y - center_y) * sin_angle + center_x);
             int src_y = round((y - center_y) * cos_angle - (x - center_x) * sin_angle + center_y);
 
@@ -169,8 +170,8 @@ void scale_data(data_t *data, int width, int height, float scale) {
         return;
     }
 
-    int offset_x = round((float)(scale_width - width) / 2);
-    int offset_y = round((float)(scale_height - height) / 2);
+    int offset_x = round((scale_width - width) / 2.0f);
+    int offset_y = round((scale_height - height) / 2.0f);
     for (int y = 0; y < height; y++) {
         for (int x = 0; x < width; x++) {
             int scaled_x = x + offset_x;
@@ -225,9 +226,9 @@ void noise_data(data_t *data, size_t inputs_length, float noise_factor, float pr
     assert(inputs_length > 0);
 
     for (size_t i = 0; i < inputs_length; i++) {
-        float random_value = (float)rand() / (float)RAND_MAX;
+        float random_value = rand() / (float)RAND_MAX;
         if (random_value <= probability) {
-            float noise = ((float)rand() / (float)RAND_MAX * noise_factor);
+            float noise = (rand() / (float)RAND_MAX * noise_factor);
             float new_value = data->inputs[i] + noise;
 
             data->inputs[i] = fmin(new_value, 1.0f);
