@@ -1,8 +1,9 @@
 #include "data/data.h"
 
 #include <assert.h>
-#include <stdint.h>
+#include <errno.h>
 #include <math.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -14,7 +15,7 @@ dataset_t *get_dataset(const char *filename) {
 
     FILE *file = fopen(filename, "rb");
     if (!file) {
-        fprintf(stderr, "Error opening %s for reading data set\n", filename);
+        fprintf(stderr, "Error opening file '%s' for reading data set: %s\n", filename, strerror(errno));
         return NULL;
     }
 
@@ -25,7 +26,7 @@ dataset_t *get_dataset(const char *filename) {
     }
 
     if (fread(&dataset->length, sizeof(uint64_t), 1, file) != 1) {
-        fprintf(stderr, "Error reading dataset length from %s\n", filename);
+        fprintf(stderr, "Failed to read dataset length from %s\n", filename);
         free(dataset);
         fclose(file);
         return NULL;
@@ -39,7 +40,7 @@ dataset_t *get_dataset(const char *filename) {
     }
 
     if (fread(&dataset->inputs_length, sizeof(uint64_t), 1, file) != 1) {
-        fprintf(stderr, "Error reading inputs_length from %s\n", filename);
+        fprintf(stderr, "Failed to read inputs_length from %s\n", filename);
         free(dataset);
         fclose(file);
         return NULL;
@@ -59,13 +60,13 @@ dataset_t *get_dataset(const char *filename) {
 
         size_t read_inputs = fread(data->inputs, sizeof(float), dataset->inputs_length, file);
         if (read_inputs != dataset->inputs_length) {
-            fprintf(stderr, "Error reading inputs_length from %s. Expected: %zu. But found: %zu\n", filename, dataset->inputs_length, read_inputs);
+            fprintf(stderr, "Invalid inputs_length from %s. Expected: %zu. But found: %zu\n", filename, dataset->inputs_length, read_inputs);
             free_data(data);
             goto cleanup;
         }
 
         if (fread(&(data->expected_index), sizeof(uint64_t), 1, file) != 1) {
-            fprintf(stderr, "Error reading expected_index from %s\n", filename);
+            fprintf(stderr, "Failed to read expected_index from %s\n", filename);
             free_data(data);
             goto cleanup;
         }
@@ -87,6 +88,7 @@ void free_dataset(dataset_t *dataset) {
     if (!dataset) {
         return;
     }
+
     for (size_t i = 0; i < dataset->length; i++) {
         free_data(dataset->datas[i]);
     }
@@ -98,6 +100,7 @@ void free_data(data_t *data) {
     if (!data) {
         return;
     }
+
     free(data->inputs);
     free(data);
 }
@@ -141,8 +144,8 @@ void rotate_data(data_t *data, int width, int height, float angle) {
 
     for (int y = 0; y < height; y++) {
         for (int x = 0; x < width; x++) {
-            int center_x = round(width / 2.0f);
-            int center_y = round(height / 2.0f);
+            int center_x = floor(width / 2.0f);
+            int center_y = floor(height / 2.0f);
             int src_x = round((x - center_x) * cos_angle + (y - center_y) * sin_angle + center_x);
             int src_y = round((y - center_y) * cos_angle - (x - center_x) * sin_angle + center_y);
 
