@@ -6,7 +6,9 @@
 
 #include "data/data.h"
 
-float random_float(float min, float max) { return (float)rand() / (float)RAND_MAX * (max - min) + min; }
+float random_float(float min, float max) { 
+    return (float)rand() / (float)RAND_MAX * (max - min) + min;
+}
 
 void matrix_multiply(const float *a, const float *b, float *c, size_t rows_a, size_t cols_a, size_t cols_b) {
     for (size_t col = 0; col < cols_b; ++col) {
@@ -296,9 +298,9 @@ float test_network_percent(neural_network_t *nn, const dataset_t *test_dataset) 
     for (size_t i = 0; i < test_dataset->length; i++) {
         compute_network(nn, test_dataset->datas[i]->inputs);
         size_t max = 0;
-        for (size_t i = 1; i < test_dataset->inputs_length; i++) {
-            if (softmax(nn, i) > softmax(nn, max)) {
-                max = i;
+        for (size_t j = 0; j < nn->layers[nn->length - 1]->length; j++) {
+            if (softmax(nn, j) > softmax(nn, max)) {
+                max = j;
             }
         }
         if (max == test_dataset->datas[i]->expected_index) {

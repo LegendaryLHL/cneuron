@@ -1,11 +1,16 @@
 #include "data/data.h"
 
+#include <assert.h>
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
+#define BACKGROUND_VALUE 0.0f
+
 dataset_t *get_dataset(const char *filename) {
+    assert(filename);
+
     FILE *file = fopen(filename, "rb");
     if (!file) {
         fprintf(stderr, "Error opening %s for reading data set\n", filename);
@@ -41,7 +46,9 @@ dataset_t *get_dataset(const char *filename) {
 
     for (size_t i = 0; i < dataset->length; i++) {
         data_t *data = malloc(sizeof(data_t));
-        if (!data) goto cleanup;
+        if (!data) {
+            goto cleanup;
+        }
 
         data->inputs = malloc(sizeof(float) * dataset->inputs_length);
         if (!data->inputs) {
@@ -76,7 +83,9 @@ cleanup:
 }
 
 void free_dataset(dataset_t *dataset) {
-    if (!dataset) return;
+    if (!dataset) {
+        return;
+    }
     for (size_t i = 0; i < dataset->length; i++) {
         free_data(dataset->datas[i]);
     }
@@ -85,12 +94,18 @@ void free_dataset(dataset_t *dataset) {
 }
 
 void free_data(data_t *data) {
-    if (!data) return;
+    if (!data) {
+        return;
+    }
     free(data->inputs);
     free(data);
 }
 
 data_t *get_data_copy(const data_t *data, size_t inputs_length) {
+    assert(data);
+    assert(data->inputs);
+    assert(inputs_length > 0);
+
     data_t *copy = malloc(sizeof(data_t));
     if (!copy) {
         return NULL;
@@ -111,10 +126,17 @@ data_t *get_data_copy(const data_t *data, size_t inputs_length) {
 }
 
 void rotate_data(data_t *data, int width, int height, float angle) {
+    assert(data);
+    assert(data->inputs);
+    assert(width > 0 && height > 0);
+
     float rad = angle * M_PI / 180.0f;
     float cos_angle = cos(rad);
     float sin_angle = sin(rad);
     float *new_inputs = malloc(sizeof(float) * width * height);
+    if (!new_inputs) {
+        return;
+    }
 
     for (int y = 0; y < height; y++) {
         for (int x = 0; x < width; x++) {
@@ -126,7 +148,7 @@ void rotate_data(data_t *data, int width, int height, float angle) {
             if (src_x >= 0 && src_x < width && src_y >= 0 && src_y < height) {
                 new_inputs[y * width + x] = data->inputs[src_y * width + src_x];
             } else {
-                new_inputs[y * width + x] = 0.0f;  // Set background color to black
+                new_inputs[y * width + x] = BACKGROUND_VALUE;
             }
         }
     }
@@ -136,39 +158,48 @@ void rotate_data(data_t *data, int width, int height, float angle) {
 }
 
 void scale_data(data_t *data, int width, int height, float scale) {
-    int scale_width = width * scale;
-    int scale_height = height * scale;
-    float *scale_inputs = malloc(sizeof(float) * scale_width * scale_height);
-    float *new_inputs = malloc(sizeof(float) * width * height);
+    assert(data);
+    assert(data->inputs);
+    assert(width > 0 && height > 0);
 
-    for (int y = 0; y < scale_height; y++) {
-        for (int x = 0; x < scale_width; x++) {
-            int src_x = x / scale;
-            int src_y = y / scale;
-            scale_inputs[y * scale_width + x] = data->inputs[src_y * width + src_x];
-        }
+    int scale_width = round(width * scale);
+    int scale_height = round(height * scale);
+    float *new_inputs = malloc(sizeof(float) * width * height);
+    if (!new_inputs) {
+        return;
     }
-    int off_set_x = round((float)(scale_width - width) / 2);
-    int off_set_y = round((float)(scale_height - height) / 2);
+
+    int offset_x = round((float)(scale_width - width) / 2);
+    int offset_y = round((float)(scale_height - height) / 2);
     for (int y = 0; y < height; y++) {
         for (int x = 0; x < width; x++) {
-            int scale_x = x + off_set_x;
-            int scale_y = y + off_set_y;
-            if (scale_x >= 0 && scale_x < scale_width && scale_y >= 0 && scale_y < scale_height) {
-                new_inputs[y * width + x] = scale_inputs[scale_y * scale_width + scale_x];
+            int scaled_x = x + offset_x;
+            int scaled_y = y + offset_y;
+
+            int src_x = round(scaled_x / scale);
+            int src_y = round(scaled_y / scale);
+
+            if (src_x >= 0 && src_x < width && src_y >= 0 && src_y < height) {
+                new_inputs[y * width + x] = data->inputs[src_y * width + src_x];
             } else {
-                new_inputs[y * width + x] = 0.0f;
+                new_inputs[y * width + x] = BACKGROUND_VALUE;
             }
         }
     }
 
-    free(scale_inputs);
     free(data->inputs);
     data->inputs = new_inputs;
 }
 
 void offset_data(data_t *data, int width, int height, float offset_x, float offset_y) {
+    assert(data);
+    assert(data->inputs);
+    assert(width > 0 && height > 0);
+
     float *new_inputs = malloc(sizeof(float) * width * height);
+    if (!new_inputs) {
+        return;
+    }
 
     for (int y = 0; y < height; y++) {
         for (int x = 0; x < width; x++) {
@@ -180,7 +211,7 @@ void offset_data(data_t *data, int width, int height, float offset_x, float offs
             if (src_x >= 0 && src_x < width && src_y >= 0 && src_y < height) {
                 new_inputs[y * width + x] = data->inputs[src_y * width + src_x];
             } else {
-                new_inputs[y * width + x] = 0.0f;  // Set background color to black
+                new_inputs[y * width + x] = BACKGROUND_VALUE;
             }
         }
     }
@@ -189,6 +220,10 @@ void offset_data(data_t *data, int width, int height, float offset_x, float offs
 }
 
 void noise_data(data_t *data, size_t inputs_length, float noise_factor, float probability) {
+    assert(data);
+    assert(data->inputs);
+    assert(inputs_length > 0);
+
     for (size_t i = 0; i < inputs_length; i++) {
         float random_value = (float)rand() / (float)RAND_MAX;
         if (random_value <= probability) {
@@ -201,6 +236,8 @@ void noise_data(data_t *data, size_t inputs_length, float noise_factor, float pr
 }
 
 float output_expected(size_t expected_index, const data_t *data) {
+    assert(data);
+
     if (data->expected_index == expected_index) {
         return 1.0f;
     } else {
