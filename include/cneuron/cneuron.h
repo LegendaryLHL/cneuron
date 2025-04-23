@@ -103,6 +103,38 @@ void noise_data(data_t *data, size_t inputs_length, float noise_factor, float pr
 float output_expected(size_t index, const data_t *data);
 
 /**
+ * @brief Multiplies two matrices stored in column-major format.
+ *
+ * @param a Pointer to the first matrix.
+ * @param b Pointer to the second matrix.
+ * @param c Pointer to the resulting matrix.
+ * @param rows_a Number of rows in matrix 'a'.
+ * @param cols_a Number of columns in matrix 'a' (also rows in matrix 'b').
+ * @param cols_b Number of columns in matrix 'b'.
+ */
+void matrix_multiply(const float *a, const float *b, float *c, size_t rows_a, size_t cols_a, size_t cols_b);
+
+/**
+ * @brief Apply activation to a vector.
+ *
+ * @param a Pointer to the vector.
+ * @param b Pointer to the resulting vector.
+ * @param length Number of element in vector 'a'.
+ * @param activation_function Activation function used to apply activation.
+ */
+void vector_apply_activation(const float *a, float *b, size_t length, float (*activation_function)(float, bool));
+
+/**
+ * @brief Add two vector together.
+ *
+ * @param a Pointer to the first vector.
+ * @param b Pointer to the second vector.
+ * @param c Pointer to the resulting vector.
+ * @param length Number of element in both vector.
+ */
+void vector_add(const float *a, const float *b, float *c, size_t length);
+
+/**
  * @brief Represents a single layer in a neural network.
  */
 typedef struct layer {
@@ -134,18 +166,6 @@ typedef struct {
  * @return A random float between min and max.
  */
 float random_float(float min, float max);
-
-/**
- * @brief Multiplies two matrices stored in column-major format.
- *
- * @param a Pointer to the first matrix.
- * @param b Pointer to the second matrix.
- * @param c Pointer to the resulting matrix.
- * @param rows_a Number of rows in matrix 'a'.
- * @param cols_a Number of columns in matrix 'a' (also rows in matrix 'b').
- * @param cols_b Number of columns in matrix 'b'.
- */
-void matrix_multiply(const float *a, const float *b, float *c, size_t rows_a, size_t cols_a, size_t cols_b);
 
 /**
  * @brief Allocates and initializes a new layer.

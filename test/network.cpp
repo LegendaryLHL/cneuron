@@ -6,13 +6,7 @@ extern "C" {
 
 #include <math.h>
 
-float sigmoid(float val, bool is_deravative) {
-    float result = 1.0f / (1.0f + expf(-val));
-    if (is_deravative == 1) {
-        return result * (1.0f - result);
-    }
-    return result;
-}
+#include "test_utils.h"
 
 TEST(NetworkTest, RandomFloat) {
     float test = random_float(0.0f, 1.0f);
@@ -24,29 +18,6 @@ TEST(NetworkTest, RandomFloat) {
         }
     }
     ASSERT_FALSE(same);
-}
-
-TEST(NetworkTest, MatrixMultiply) {
-    float *a = (float *)malloc(sizeof(float) * 3);
-    float *b = (float *)malloc(sizeof(float) * 3);
-
-    a[0] = 1.0f;
-    a[1] = 2.0f;
-    a[2] = 3.0f;
-    b[0] = 4.0f;
-    b[1] = 5.0f;
-    b[2] = 6.0f;
-
-    float *c = (float *)malloc(sizeof(float) * 9);
-    matrix_multiply(a, b, c, 3, 1, 3);
-    ASSERT_FLOAT_EQ(c[0], 4.0f);
-    ASSERT_FLOAT_EQ(c[2], 12.0f);
-    ASSERT_FLOAT_EQ(c[4], 10.0f);
-    ASSERT_FLOAT_EQ(c[7], 12.0f);
-
-    free(a);
-    free(b);
-    free(c);
 }
 
 TEST(NetworkTest, GetLayer) {

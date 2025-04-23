@@ -15,22 +15,6 @@ float random_float(float min, float max) {
     return (float)rand() / (float)RAND_MAX * (max - min) + min;
 }
 
-void matrix_multiply(const float *a, const float *b, float *c, size_t rows_a, size_t cols_a, size_t cols_b) {
-    assert(a);
-    assert(b);
-    assert(c);
-
-    for (size_t col = 0; col < cols_b; ++col) {
-        for (size_t row = 0; row < rows_a; ++row) {
-            float sum = 0.0f;
-            for (size_t k = 0; k < cols_a; ++k) {
-                sum += a[k * rows_a + row] * b[col * cols_a + k];
-            }
-            c[col * rows_a + row] = sum;
-        }
-    }
-}
-
 layer_t *get_layer(size_t length, size_t prev_length) {
     layer_t *layer = calloc(1, sizeof(layer_t));
     if (!layer) {
@@ -153,10 +137,9 @@ void compute_network(neural_network_t *nn, const float *inputs) {
         } else {
             matrix_multiply(curr->weights, curr->prev_layer->output, curr->weighted_input, curr->length, curr->prev_layer->length, 1);
         }
-        for (size_t i = 0; i < curr->length; i++) {
-            curr->weighted_input[i] += curr->bias[i];
-            curr->output[i] = nn->activation_function(curr->weighted_input[i], 0);
-        }
+
+        vector_add(curr->bias, curr->weighted_input, curr->weighted_input, curr->length);
+        vector_apply_activation(curr->weighted_input, curr->output, curr->length, nn->activation_function);
         curr = curr->next_layer;
     }
 }
@@ -270,7 +253,7 @@ void layer_learn(neural_network_t *nn, size_t layer_index, float learn_rate, con
             float neuron_output = output_layer->output[i];
             float target_output = output_expected(i, data);
 
-            output_layer->delta[i] = 2 * (neuron_output - target_output) * activation_function(output_layer->weighted_input[i], true);
+            output_layer->delta[i] = 2.0f * (neuron_output - target_output) * activation_function(output_layer->weighted_input[i], true);
 
             // If output_layer is the only layer use data as prev_layer
             if (nn->length == 1) {

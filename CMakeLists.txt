@@ -26,6 +26,7 @@ set(RELEASE_FLAGS -O3 -DNDEBUG)
 
 function(apply_target_flags target)
     target_include_directories(${target} PRIVATE ${CMAKE_SOURCE_DIR}/include)
+    target_include_directories(${target} PRIVATE ${CMAKE_SOURCE_DIR}/test)
     target_compile_options(${target} PRIVATE ${WARNING_FLAGS})
 
     if(CMAKE_BUILD_TYPE STREQUAL "Debug")
