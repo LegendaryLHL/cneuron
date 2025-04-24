@@ -53,6 +53,15 @@ void free_data(data_t *data);
 data_t *get_data_copy(const data_t *data, size_t inputs_length);
 
 /**
+ * @brief Creates allocate new dataset and select random copy of data from a source dataset.
+ *
+ * @param source_dataset Pointer to the source dataset.
+ * @param amount Number of data to be created in the new dataset.
+ * @return Pointer to the newly created 'dataset_t' structure.
+ */
+dataset_t *get_random_dataset_sample(const dataset_t *source_dataset, size_t amount);
+
+/**
  * @brief Rotates the data by a specified angle.
  *
  * @param data Pointer to the data element to modify.
@@ -205,7 +214,7 @@ void free_neural_network(neural_network_t *nn);
  * @brief Computes the output of the neural network for the given inputs.
  *
  * @param nn Pointer to the neural network.
- * @param inputs Array of input values.
+ * @param inputs The inputs to compute.
  *
  * @note The weights and biases are automatically initialized when the network is created using 'get_neural_network'. Ensure the network is created properly before calling this function.
  */
@@ -251,7 +260,21 @@ float cost(neural_network_t *nn, const dataset_t *test_dataset, size_t num_test)
 void layer_learn(neural_network_t *nn, size_t layer_index, float learn_rate, const data_t *data, float (*activation_function)(float, bool));
 
 /**
- * @brief Performs learning (backpropagation) for the entire network.
+ * @brief Performs backpropagation for a specific layer but add the change in gradient to a array.
+ *
+ * @param nn Pointer to the neural network.
+ * @param layer_index Index of the layer to perform backpropagation on.
+ * @param layer_weights_gradients Pointer to an array of weights to be added to.
+ * @param layer_weights_bias Pointer to an array of bias to be added to.
+ * @param data Pointer to the data element used for learning.
+ * @param activation_function Pointer to the activation function.
+ *
+ * @note The network must be computed using 'compute_network' prior to calling this function.
+ */
+void layer_learn_collect_gradient(neural_network_t *nn, float *layer_weights_gradients, float *layer_bias_gradients, size_t layer_index, const data_t *data, float (*activation_function)(float, bool));
+
+/**
+ * @brief Performs stochastic gradient descent to the network.
  *
  * @param nn Pointer to the neural network.
  * @param learn_rate Learning rate for weight updates.
@@ -260,6 +283,17 @@ void layer_learn(neural_network_t *nn, size_t layer_index, float learn_rate, con
  * @note The network must be computed using 'compute_network' prior to calling this function.
  */
 void learn(neural_network_t *nn, float learn_rate, const data_t *data);
+
+/**
+ * @brief Performs mini-batch gradient decent to the network.
+ *
+ * @param nn Pointer to the neural network.
+ * @param learn_rate Learning rate for weight updates.
+ * @param dataset Pointer to the dataset used for gradient decent.
+ *
+ * @note The network must be computed using 'compute_network' prior to calling this function.
+ */
+void mini_batch_gd(neural_network_t *nn, float learn_rate, const dataset_t *dataset, size_t batch_size);
 
 /**
  * @brief Saves the neural network to a file.

@@ -26,7 +26,6 @@ set(RELEASE_FLAGS -O3 -DNDEBUG)
 
 function(apply_target_flags target)
     target_include_directories(${target} PRIVATE ${CMAKE_SOURCE_DIR}/include)
-    target_include_directories(${target} PRIVATE ${CMAKE_SOURCE_DIR}/test)
     target_compile_options(${target} PRIVATE ${WARNING_FLAGS})
 
     if(CMAKE_BUILD_TYPE STREQUAL "Debug")
@@ -51,6 +50,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE m libcneuron)
 # Test executable
 add_executable(tests ${TEST_FILES})
 apply_target_flags(tests)
+target_include_directories(tests PRIVATE ${CMAKE_SOURCE_DIR}/test)
 target_link_libraries(tests PRIVATE m libcneuron GTest::gtest_main)
 
 add_test(NAME tests COMMAND tests)
