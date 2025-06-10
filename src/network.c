@@ -127,12 +127,12 @@ void compute_network(neural_network *nn, const float *inputs) {
     layer *curr = nn->layers[0];
     while (curr != NULL) {
         if (curr->prev_layer == NULL) {
-            matrix_multiply(curr->weights, inputs, curr->weighted_input, curr->length, nn->inputs_length, 1);
+            matrix_vector_multiply(curr->weights, inputs, curr->weighted_input, curr->length, nn->inputs_length);
         } else {
-            matrix_multiply(curr->weights, curr->prev_layer->output, curr->weighted_input, curr->length, curr->prev_layer->length, 1);
+            matrix_vector_multiply(curr->weights, curr->prev_layer->output, curr->weighted_input, curr->length, curr->prev_layer->length);
         }
 
-        vector_add(curr->bias, curr->weighted_input, curr->weighted_input, curr->length);
+        vector_add(curr->bias, curr->weighted_input, curr->length);
         vector_apply_activation(curr->weighted_input, curr->output, curr->length, nn->activation_function);
         curr = curr->next_layer;
     }
