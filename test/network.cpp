@@ -207,7 +207,7 @@ TEST(NetworkTest, MiniBatchGDTests) {
     neural_network *nn = get_neural_network(layer_length, layer_lengths, test_dataset->inputs_length, &sigmoid);
 
     for (size_t i = 0; i < 1500000; i++) {
-        dataset *batch_dataset = get_random_dataset_sample(test_dataset, (rand() % test_dataset->length) + 1);
+        dataset *batch_dataset = get_random_dataset_sample(test_dataset, test_dataset->length);
         mini_batch_gd(nn, 0.001f, batch_dataset);
         free_dataset(batch_dataset);
         if (i % 200000 == 0) {
@@ -228,7 +228,7 @@ TEST(NetworkTest, MiniBatchGDTests) {
     nn = get_neural_network(layer_length, layer_lengths, test_dataset->inputs_length, &sigmoid);
 
     for (size_t i = 0; i < 100000; i++) {
-        dataset *batch_dataset = get_random_dataset_sample(test_dataset, (rand() % test_dataset->length) + 1);
+        dataset *batch_dataset = get_random_dataset_sample(test_dataset, test_dataset->length);
         mini_batch_gd(nn, 0.001f, batch_dataset);
         free_dataset(batch_dataset);
         if (i % 20000 == 0) {
