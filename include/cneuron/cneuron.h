@@ -112,18 +112,6 @@ void noise_data(data *data, size_t inputs_length, float noise_factor, float prob
 float output_expected(size_t index, const data *data);
 
 /**
- * @brief Multiplies two matrices stored in column-major format.
- *
- * @param a Pointer to the first matrix.
- * @param b Pointer to the second matrix.
- * @param c Pointer to the resulting matrix.
- * @param rows_a Number of rows in matrix 'a'.
- * @param cols_a Number of columns in matrix 'a' (also rows in matrix 'b').
- * @param cols_b Number of columns in matrix 'b'.
- */
-void matrix_multiply(const float *a, const float *b, float *c, size_t rows_a, size_t cols_a, size_t cols_b);
-
-/**
  * @brief Apply activation to a vector.
  *
  * @param a Pointer to the vector.
@@ -131,17 +119,9 @@ void matrix_multiply(const float *a, const float *b, float *c, size_t rows_a, si
  * @param length Number of element in vector 'a'.
  * @param activation_function Activation function used to apply activation.
  */
-void vector_apply_activation(const float *a, float *b, size_t length, float (*activation_function)(float, bool));
+void vector_apply_activation(const float *a, float *b, size_t length, float (*activation_function)(float, bool), bool is_derivative);
 
-/**
- * @brief Add two vector together.
- *
- * @param a Pointer to the first vector.
- * @param b Pointer to the second vector.
- * @param c Pointer to the resulting vector.
- * @param length Number of element in both vector.
- */
-void vector_add(const float *a, const float *b, float *c, size_t length);
+void hadamard_product(const float *a, const float *b, float *c, size_t length);
 
 /**
  * @brief Represents a single layer in a neural network.
@@ -257,7 +237,7 @@ float cost(neural_network *nn, const dataset *test_dataset, size_t num_test);
  *
  * @note The network must be computed using 'compute_network' prior to calling this function.
  */
-void layer_learn(neural_network *nn, size_t layer_index, float learn_rate, const data *data, float (*activation_function)(float, bool));
+void layer_learn(neural_network *nn, size_t layer_index, float learn_rate, const data *data);
 
 /**
  * @brief Performs backpropagation for a specific layer but add the change in gradient to a array.
@@ -271,7 +251,7 @@ void layer_learn(neural_network *nn, size_t layer_index, float learn_rate, const
  *
  * @note The network must be computed using 'compute_network' prior to calling this function.
  */
-void layer_learn_collect_gradient(neural_network *nn, float *layer_weights_gradients, float *layer_bias_gradients, size_t layer_index, const data *data, float (*activation_function)(float, bool));
+void layer_learn_collect_gradient(neural_network *nn, float *layer_weights_gradients, float *layer_bias_gradients, size_t layer_index, const data *data);
 
 /**
  * @brief Performs stochastic gradient descent to the network.
