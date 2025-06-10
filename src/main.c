@@ -25,16 +25,16 @@ void test_openblas() {
 
 float sigmoid(float val, bool is_deravative) {
     float result = 1.0f / (1.0f + expf(-val));
-    if (is_deravative) {
+    if (is_deravative)
         return result * (1.0f - result);
-    }
+
     return result;
 }
 
 float relu(float val, bool is_deravative) {
-    if (is_deravative) {
+    if (is_deravative)
         return (val > 0.0f) ? 1.0f : 0.0f;
-    }
+
     return fmax(0.0f, val);
 }
 
@@ -101,9 +101,8 @@ dataset *get_mnist(bool is_test) {
         free(datasets[i]);
     }
 
-    if (curr_count != mnist_dataset->length) {
+    if (curr_count != mnist_dataset->length)
         printf("Error reading all mnist data. Read: %zu, Expected: %zu\n", curr_count, mnist_dataset->length);
-    }
 
     free(datasets);
 

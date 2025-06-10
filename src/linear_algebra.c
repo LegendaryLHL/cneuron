@@ -10,18 +10,14 @@ void matrix_vector_multiply(const float *a, const float *b, float *c, size_t row
 }
 
 void vector_apply_activation(const float *a, float *b, size_t length, float (*activation_function)(float, bool)) {
-    assert(a);
-    assert(b);
-    assert(activation_function);
+    assert(a && b && activation_function);
     for (size_t i = 0; i < length; i++) {
         b[i] = activation_function(a[i], false);
     }
 }
 
-void vector_add(const float *a, float *c, size_t length) {
-    assert(a);
-    assert(b);
-    assert(c);
+void vector_add(const float *a, float *b, size_t length) {
+    assert(a && b);
 
-    cblas_saxpy((int)length, 1.0f, a, 1, c, 1);
+    cblas_saxpy((int)length, 1.0f, a, 1, b, 1);
 }
