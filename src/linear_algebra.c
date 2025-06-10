@@ -5,7 +5,6 @@
 
 void vector_apply_activation(const float *a, float *b, size_t length, float (*activation_function)(float, bool), bool is_derivative) {
     assert(a && b && activation_function);
-
     for (size_t i = 0; i < length; i++) {
         b[i] = activation_function(a[i], is_derivative);
     }

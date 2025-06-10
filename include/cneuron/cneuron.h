@@ -116,11 +116,21 @@ float output_expected(size_t index, const data *data);
  *
  * @param a Pointer to the vector.
  * @param b Pointer to the resulting vector.
- * @param length Number of element in vector 'a'.
+ * @param length Number of element of the vector.
  * @param activation_function Activation function used to apply activation.
+ * @param is_derivative Toggle between derivative calculation and non derivative calculation.
  */
 void vector_apply_activation(const float *a, float *b, size_t length, float (*activation_function)(float, bool), bool is_derivative);
 
+/**
+ * @brief Compute hadamard product of two vector.
+ *
+ * @param a Pointer to the first vector.
+ * @param b Pointer to the second vector.
+ * @param c Pointer to the resulting vector.
+ * @param length Number of element of the vector.
+ * @param activation_function Activation function used to apply activation.
+ */
 void hadamard_product(const float *a, const float *b, float *c, size_t length);
 
 /**

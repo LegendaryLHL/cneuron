@@ -1,10 +1,9 @@
 #include <gtest/gtest.h>
+#include <math.h>
 
 extern "C" {
 #include "cneuron/cneuron.h"
 }
-
-#include <math.h>
 
 #include "test_utils.h"
 
@@ -26,7 +25,6 @@ TEST(LinearAlgebraTest, VectorApplyActivation) {
     free(a);
     free(b);
 }
-
 
 TEST(LinearAlgebraTest, HadamardProduct) {
     size_t length = 3;
