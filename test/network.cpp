@@ -196,7 +196,6 @@ TEST(NetworkTest, StochasticGDTests) {
     free_dataset(test_dataset);
 }
 
-
 TEST(NetworkTest, MiniBatchGDTests) {
     dataset *test_dataset = get_xor();
 
@@ -207,9 +206,11 @@ TEST(NetworkTest, MiniBatchGDTests) {
     layer_lengths[1] = 2;
     neural_network *nn = get_neural_network(layer_length, layer_lengths, test_dataset->inputs_length, &sigmoid);
 
-    for (size_t i = 0; i < 500000; i++) {
-        mini_batch_gd(nn, 0.001f, test_dataset);
-        if (i % 100000 == 0) {
+    for (size_t i = 0; i < 1000000; i++) {
+        dataset *batch_dataset = get_random_dataset_sample(test_dataset, (rand() % test_dataset->length) + 1);
+        mini_batch_gd(nn, 0.001f, batch_dataset);
+        free_dataset(batch_dataset);
+        if (i % 200000 == 0) {
             printf("Mini Batch Multi layer learn cost: %f\n", cost(nn, test_dataset, test_dataset->length));
         }
     }
@@ -226,9 +227,11 @@ TEST(NetworkTest, MiniBatchGDTests) {
     layer_lengths[0] = 2;
     nn = get_neural_network(layer_length, layer_lengths, test_dataset->inputs_length, &sigmoid);
 
-    for (size_t i = 0; i < 50000; i++) {
-        mini_batch_gd(nn, 0.001f, test_dataset);
-        if (i % 10000 == 0) {
+    for (size_t i = 0; i < 100000; i++) {
+        dataset *batch_dataset = get_random_dataset_sample(test_dataset, (rand() % test_dataset->length) + 1);
+        mini_batch_gd(nn, 0.001f, batch_dataset);
+        free_dataset(batch_dataset);
+        if (i % 20000 == 0) {
             printf("Mini Batch Non-linearly separable learn cost: %f\n", cost(nn, test_dataset, test_dataset->length));
         }
     }
