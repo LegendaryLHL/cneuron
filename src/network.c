@@ -121,10 +121,11 @@ void compute_network(neural_network *nn, const float *inputs) {
 
     layer *curr = nn->layers[0];
     while (curr != NULL) {
-        if (curr->prev_layer == NULL) {
-            cblas_sgemv(CblasColMajor, CblasNoTrans, curr->length, nn->inputs_length, 1.0f, curr->weights, curr->length, inputs, 1, 0.0f, curr->weighted_input, 1);
+        layer *prev = curr->prev_layer;
+        if (prev == NULL) {
+            cblas_sgemm(CblasColMajor, CblasNoTrans, CblasNoTrans, curr->length, 1, nn->inputs_length, 1.0f, curr->weights, curr->length, inputs, nn->inputs_length, 0.0f, curr->weighted_input, curr->length);
         } else {
-            cblas_sgemv(CblasColMajor, CblasNoTrans, curr->length, curr->prev_layer->length, 1.0f, curr->weights, curr->length, curr->prev_layer->output, 1, 0.0f, curr->weighted_input, 1);
+            cblas_sgemm(CblasColMajor, CblasNoTrans, CblasNoTrans, curr->length, 1, prev->length, 1.0f, curr->weights, curr->length, prev->output, prev->length, 0.0f, curr->weighted_input, curr->length);
         }
 
         cblas_saxpy(curr->length, 1.0f, curr->bias, 1, curr->weighted_input, 1);
@@ -234,13 +235,10 @@ void layer_learn(neural_network *nn, size_t layer_index, float learn_rate, const
     vector_apply_activation(curr_layer->weighted_input, curr_layer->weighted_input, curr_layer->length, nn->activation_function, true);
     if (layer_index == nn->length - 1) {
         // Error in output
-        float *actual = calloc(curr_layer->length, sizeof(float));
-        actual[data->expected_index] = 1.0f;
-        cblas_saxpy(curr_layer->length, -1.0f, actual, 1, curr_layer->output, 1);
-        free(actual);
+        curr_layer->output[data->expected_index] -= 1.0f;
     } else {
         // W^T_{i+1}δ_{i+1} in output
-        cblas_sgemv(CblasColMajor, CblasTrans, next_layer->length, curr_layer->length, 1.0f, next_layer->weights, next_layer->length, next_layer->delta, 1, 0.0f, curr_layer->output, 1);
+        cblas_sgemm(CblasColMajor, CblasTrans, CblasNoTrans, curr_layer->length, 1, next_layer->length, 1.0f, next_layer->weights, next_layer->length, next_layer->delta, next_layer->length, 0.0f, curr_layer->output, curr_layer->length);
     }
 
     hadamard_product(curr_layer->weighted_input, curr_layer->output, curr_layer->delta, curr_layer->length);
@@ -273,32 +271,22 @@ void layer_learn_collect_gradient(neural_network *nn, float *layer_weights_gradi
     vector_apply_activation(curr_layer->weighted_input, curr_layer->weighted_input, curr_layer->length, nn->activation_function, true);
     if (layer_index == nn->length - 1) {
         // Error in output
-        float *actual = calloc(curr_layer->length, sizeof(float));
-        actual[data->expected_index] = 1.0f;
-        cblas_saxpy(curr_layer->length, -1.0f, actual, 1, curr_layer->output, 1);
-        free(actual);
+        curr_layer->output[data->expected_index] -= 1.0f;
     } else {
         // W^T_{i+1}δ_{i+1} in output
-        cblas_sgemv(CblasColMajor, CblasTrans, next_layer->length, curr_layer->length, 1.0f, next_layer->weights, next_layer->length, next_layer->delta, 1, 0.0f, curr_layer->output, 1);
+        cblas_sgemm(CblasColMajor, CblasTrans, CblasNoTrans, curr_layer->length, 1, next_layer->length, 1.0f, next_layer->weights, next_layer->length, next_layer->delta, next_layer->length, 0.0f, curr_layer->output, curr_layer->length);
     }
 
     hadamard_product(curr_layer->weighted_input, curr_layer->output, curr_layer->delta, curr_layer->length);
 
-    float *weight_gradient;
     if (layer_index == 0) {
-        weight_gradient = calloc(curr_layer->length * nn->inputs_length, sizeof(float));
-        cblas_sger(CblasColMajor, curr_layer->length, nn->inputs_length, 1.0f, curr_layer->delta, 1, data->inputs, 1, weight_gradient, curr_layer->length);
-        cblas_saxpy(curr_layer->length * nn->inputs_length, 1.0f, weight_gradient, 1, layer_weights_gradients, 1);
+        cblas_sger(CblasColMajor, curr_layer->length, nn->inputs_length, 1.0f, curr_layer->delta, 1, data->inputs, 1, layer_weights_gradients, curr_layer->length);
     } else {
-        weight_gradient = calloc(curr_layer->length * prev_layer->length, sizeof(float));
-        cblas_sger(CblasColMajor, curr_layer->length, prev_layer->length, 1.0f, curr_layer->delta, 1, prev_layer->output, 1, weight_gradient, curr_layer->length);
-        cblas_saxpy(curr_layer->length * prev_layer->length, 1.0f, weight_gradient, 1, layer_weights_gradients, 1);
+        cblas_sger(CblasColMajor, curr_layer->length, prev_layer->length, 1.0f, curr_layer->delta, 1, prev_layer->output, 1, layer_weights_gradients, curr_layer->length);
     }
 
     // Bias update
     cblas_saxpy(curr_layer->length, 1.0f, curr_layer->delta, 1, layer_bias_gradients, 1);
-
-    free(weight_gradient);
 }
 
 void stochastic_gd(neural_network *nn, float learn_rate, const data *data) {

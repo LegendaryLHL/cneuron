@@ -96,7 +96,7 @@ dataset *get_mnist(bool is_test) {
     return mnist_dataset;
 }
 
-int main(void) {
+int main(int argc, char **argv) {
     srand(time(NULL));
     dataset *train_dataset = get_mnist(false);
     dataset *test_dataset = get_mnist(true);
@@ -111,19 +111,26 @@ int main(void) {
     // Parameters
     float learn_rate = 1.5f;
     size_t batch_size = 30;
-    int learn_amount = 150000;
+    int learn_amount = 4800000;
     int batch_amount = learn_amount / batch_size;
     int log_amount = 200;  // Log once reached a number of batch
 
     char cmd[100];
     FILE *fp;
     float user_input[IMAGE_SIZE * IMAGE_SIZE];
-    while (1) {
-        printf("cmd: ");
-        if (scanf("%99s", cmd) != 1) {
-            printf("Invalid input format. Please try again.\n");
-            continue;
+    bool loop = true;
+    while (loop) {
+        if (argc > 1) {
+            loop = false;
+            cmd[0] = argv[1][0];
+        } else {
+            printf("cmd: ");
+            if (scanf("%99s", cmd) != 1) {
+                printf("Invalid input format. Please try again.\n");
+                continue;
+            }
         }
+
         if (cmd[0] == 'q') {
             break;
         } else if (cmd[0] == 's') {

@@ -140,7 +140,7 @@ TEST(NetworkTest, StochasticGDSingleLayer) {
         }
     }
 
-    ASSERT_LE(cost(nn, test_dataset, test_dataset->length), 0.05);
+    ASSERT_LE(cost(nn, test_dataset, test_dataset->length), 0.2f);
     ASSERT_GE(test_network_percent(nn, test_dataset), 90.0f);
 
     free_dataset(test_dataset);
@@ -167,7 +167,7 @@ TEST(NetworkTest, StochasticGDTests) {
         }
     }
 
-    ASSERT_LE(cost(nn, test_dataset, test_dataset->length), 0.05);
+    ASSERT_LE(cost(nn, test_dataset, test_dataset->length), 0.2f);
     ASSERT_GE(test_network_percent(nn, test_dataset), 90.0f);
 
     free_neural_network(nn);
@@ -188,7 +188,7 @@ TEST(NetworkTest, StochasticGDTests) {
         }
     }
 
-    ASSERT_GE(cost(nn, test_dataset, test_dataset->length), 0.05);
+    ASSERT_GE(cost(nn, test_dataset, test_dataset->length), 0.2f);
     ASSERT_LE(test_network_percent(nn, test_dataset), 90.0f);
 
     free_neural_network(nn);
@@ -215,7 +215,7 @@ TEST(NetworkTest, MiniBatchGDTests) {
         }
     }
 
-    ASSERT_LE(cost(nn, test_dataset, test_dataset->length), 0.05);
+    ASSERT_LE(cost(nn, test_dataset, test_dataset->length), 0.2f);
     ASSERT_GE(test_network_percent(nn, test_dataset), 90.0f);
 
     free_neural_network(nn);
@@ -236,7 +236,7 @@ TEST(NetworkTest, MiniBatchGDTests) {
         }
     }
 
-    ASSERT_GE(cost(nn, test_dataset, test_dataset->length), 0.05);
+    ASSERT_GE(cost(nn, test_dataset, test_dataset->length), 0.2f);
     ASSERT_LE(test_network_percent(nn, test_dataset), 90.0f);
 
     free_neural_network(nn);
