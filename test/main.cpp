@@ -5,7 +5,6 @@ extern "C" {
 }
 
 int main(int argc, char **argv) {
-    sprand32(time(NULL));
     ::testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
 }

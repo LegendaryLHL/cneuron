@@ -9,18 +9,6 @@ extern "C" {
 
 #include "test_utils.h"
 
-TEST(NetworkTest, RandomFloat) {
-    float test = random_float(0.0f, 1.0f);
-    bool same = true;
-    for (int i = 0; i < 10; i++) {
-        if (test != random_float(0.0f, 1.0f)) {
-            same = false;
-            break;
-        }
-    }
-    ASSERT_FALSE(same);
-}
-
 TEST(NetworkTest, GetLayer) {
     size_t layer_length = 3;
     layer *test_layer = get_layer(layer_length, 5);

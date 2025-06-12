@@ -11,12 +11,6 @@
 #include "cneuron/cneuron.h"
 #include "prand32.h"
 
-float random_float(float min, float max) {
-    assert(min < max);
-
-    return prand32f() * (max - min) + min;
-}
-
 layer *get_layer(size_t length, size_t prev_length) {
     layer *new_layer = calloc(1, sizeof(layer));
     if (!new_layer)
