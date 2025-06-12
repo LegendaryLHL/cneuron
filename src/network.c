@@ -293,38 +293,117 @@ void stochastic_gd(neural_network *nn, float learn_rate, const data *data) {
     }
 }
 
-void mini_batch_gd(neural_network *nn, float learn_rate, const dataset *data_batch) {
-    assert(nn && data_batch);
+#include <pthread.h>
+#include <stdlib.h>
+#include <assert.h>
 
-    float **weights_gradients = malloc(sizeof(float *) * nn->length);
-    float **bias_gradients = malloc(sizeof(float *) * nn->length);
+#define NUM_THREADS 1  // You can tweak this as needed
+
+typedef struct {
+    neural_network *nn;
+    const dataset *data_batch;
+    size_t start;
+    size_t end;
+    float ***weights_gradients;
+    float ***bias_gradients;
+    int thread_index;
+} ThreadArgs;
+
+void *thread_worker(void *arg) {
+    ThreadArgs *args = (ThreadArgs *)arg;
+    neural_network *nn = args->nn;
+
+    float **weights_gradients = args->weights_gradients[args->thread_index];
+    float **bias_gradients = args->bias_gradients[args->thread_index];
 
     for (size_t i = 0; i < nn->length; i++) {
-        weights_gradients[i] = calloc(nn->layers[i]->length * ((i == 0) ? nn->inputs_length : nn->layers[i - 1]->length), sizeof(float));
+        size_t weights_size = nn->layers[i]->length * ((i == 0) ? nn->inputs_length : nn->layers[i - 1]->length);
+        weights_gradients[i] = calloc(weights_size, sizeof(float));
         bias_gradients[i] = calloc(nn->layers[i]->length, sizeof(float));
     }
 
-    for (size_t i = 0; i < data_batch->length; i++) {
-        data *data = data_batch->datas[i];
+    for (size_t i = args->start; i < args->end; i++) {
+        data *data = args->data_batch->datas[i];
         compute_network(nn, data->inputs);
+
         for (size_t j = 0; j < nn->length; j++) {
             size_t layer_index = nn->length - j - 1;
             layer_learn_collect_gradient(nn, weights_gradients[layer_index], bias_gradients[layer_index], layer_index, data);
         }
     }
 
-    for (size_t i = 0; i < nn->length; i++) {
-        for (size_t j = 0; j < nn->layers[i]->length * ((i == 0) ? nn->inputs_length : nn->layers[i - 1]->length); j++)
-            nn->layers[i]->weights[j] -= weights_gradients[i][j] / data_batch->length * learn_rate;
-        for (size_t j = 0; j < nn->layers[i]->length; j++)
-            nn->layers[i]->bias[j] -= bias_gradients[i][j] / data_batch->length * learn_rate;
+    return NULL;
+}
 
-        free(weights_gradients[i]);
-        free(bias_gradients[i]);
+void mini_batch_gd(neural_network *nn, float learn_rate, const dataset *data_batch) {
+    assert(nn && data_batch);
+
+    pthread_t threads[NUM_THREADS];
+    ThreadArgs args[NUM_THREADS];
+
+    // Allocate gradient accumulators per thread
+    float ***all_weights_gradients = malloc(NUM_THREADS * sizeof(float **));
+    float ***all_bias_gradients = malloc(NUM_THREADS * sizeof(float **));
+
+    for (int i = 0; i < NUM_THREADS; i++) {
+        all_weights_gradients[i] = malloc(nn->length * sizeof(float *));
+        all_bias_gradients[i] = malloc(nn->length * sizeof(float *));
     }
 
-    free(weights_gradients);
-    free(bias_gradients);
+    size_t chunk_size = (data_batch->length + NUM_THREADS - 1) / NUM_THREADS;
+
+    // Launch threads
+    for (int t = 0; t < NUM_THREADS; t++) {
+        args[t] = (ThreadArgs){
+            .nn = nn,
+            .data_batch = data_batch,
+            .start = t * chunk_size,
+            .end = (t + 1) * chunk_size > data_batch->length ? data_batch->length : (t + 1) * chunk_size,
+            .weights_gradients = all_weights_gradients,
+            .bias_gradients = all_bias_gradients,
+            .thread_index = t
+        };
+        pthread_create(&threads[t], NULL, thread_worker, &args[t]);
+    }
+
+    // Join threads
+    for (int t = 0; t < NUM_THREADS; t++) {
+        pthread_join(threads[t], NULL);
+    }
+
+    // Merge gradients
+    for (size_t i = 0; i < nn->length; i++) {
+        size_t weights_size = nn->layers[i]->length * ((i == 0) ? nn->inputs_length : nn->layers[i - 1]->length);
+
+        for (size_t j = 0; j < weights_size; j++) {
+            float sum = 0.0f;
+            for (int t = 0; t < NUM_THREADS; t++) {
+                sum += all_weights_gradients[t][i][j];
+            }
+            nn->layers[i]->weights[j] -= (sum / data_batch->length) * learn_rate;
+        }
+
+        for (size_t j = 0; j < nn->layers[i]->length; j++) {
+            float sum = 0.0f;
+            for (int t = 0; t < NUM_THREADS; t++) {
+                sum += all_bias_gradients[t][i][j];
+            }
+            nn->layers[i]->bias[j] -= (sum / data_batch->length) * learn_rate;
+        }
+    }
+
+    // Free memory
+    for (int t = 0; t < NUM_THREADS; t++) {
+        for (size_t i = 0; i < nn->length; i++) {
+            free(all_weights_gradients[t][i]);
+            free(all_bias_gradients[t][i]);
+        }
+        free(all_weights_gradients[t]);
+        free(all_bias_gradients[t]);
+    }
+
+    free(all_weights_gradients);
+    free(all_bias_gradients);
 }
 
 bool save_network(const char *filename, neural_network *nn) {

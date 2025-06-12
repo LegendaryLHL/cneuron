@@ -26,8 +26,30 @@ float relu(float val, bool is_deravative) {
     return fmax(0.0f, val);
 }
 
+#include <pthread.h>
+
+typedef struct {
+    dataset *train_dataset;
+    size_t batch_size;
+} churn;
+
+dataset *churn_dataset(churn *churn) {
+    dataset *batch_dataset = get_random_dataset_sample(churn->train_dataset, churn->batch_size);
+    for (size_t i = 0; i < batch_dataset->length; i++) {
+        data *data = batch_dataset->datas[i];
+        rotate_data(data, IMAGE_SIZE, IMAGE_SIZE, prand32f_range(-5.0f, 5.0f));
+        scale_data(data, IMAGE_SIZE, IMAGE_SIZE, prand32f_range(0.9f, 1.1f));
+        offset_data(data, IMAGE_SIZE, IMAGE_SIZE, prand32f_range(-3.0f, 3.0f), prand32f_range(-3.0f, 3.0f));
+        noise_data(data, IMAGE_SIZE * IMAGE_SIZE, 0.3f, 0.08f);
+    }
+    return batch_dataset;
+}
+
 void train(neural_network *nn, dataset *train_dataset, dataset *test_dataset, float learn_rate, int batch_amount, int log_amount, size_t batch_size) {
+    pthread_t thread;
+    churn churner = (churn) {.train_dataset=train_dataset, .batch_size=batch_size};
     clock_t start_time = clock();
+    dataset *batch_dataset = churn_dataset(&churner);
     for (int i = 0; i < batch_amount; i++) {
         if (i % log_amount == 0 && i != 0) {
             float new_cost = cost(nn, test_dataset, 100);
@@ -37,16 +59,11 @@ void train(neural_network *nn, dataset *train_dataset, dataset *test_dataset, fl
             printf("Learned: %zu, cost: %f, elapsed time: %.2fs, speed: %.2f Data/s\n", i * batch_size, new_cost, elapsed_s, speed);
             start_time = clock();
         }
-        dataset *batch_dataset = get_random_dataset_sample(train_dataset, batch_size);
-        for (size_t i = 0; i < batch_dataset->length; i++) {
-            data *data = batch_dataset->datas[i];
-            rotate_data(data, IMAGE_SIZE, IMAGE_SIZE, prand32f_range(-5.0f, 5.0f));
-            scale_data(data, IMAGE_SIZE, IMAGE_SIZE, prand32f_range(0.9f, 1.1f));
-            offset_data(data, IMAGE_SIZE, IMAGE_SIZE, prand32f_range(-3.0f, 3.0f), prand32f_range(-3.0f, 3.0f));
-            noise_data(data, IMAGE_SIZE * IMAGE_SIZE, 0.3f, 0.08f);
-        }
+
+        pthread_create(&thread, NULL, (void *(*)(void *))churn_dataset, &churner);
         mini_batch_gd(nn, learn_rate, batch_dataset);
         free_dataset(batch_dataset);
+        pthread_join(thread, (void **)&batch_dataset);
     }
 }
 
