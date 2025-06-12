@@ -9,11 +9,12 @@
 #include <string.h>
 
 #include "cneuron/cneuron.h"
+#include "prand32.h"
 
 float random_float(float min, float max) {
     assert(min < max);
 
-    return (float)rand() / (float)RAND_MAX * (max - min) + min;
+    return prand32f() * (max - min) + min;
 }
 
 layer *get_layer(size_t length, size_t prev_length) {
@@ -30,7 +31,7 @@ layer *get_layer(size_t length, size_t prev_length) {
     }
 
     for (size_t i = 0; i < length * prev_length; i++)
-        new_layer->weights[i] = ((float)rand() / (float)RAND_MAX * 2.0f - 1.0f);
+        new_layer->weights[i] = prand32f() * 2.0f - 1.0f;
 
     new_layer->delta = calloc(length, sizeof(float));
     if (!new_layer->delta) {
@@ -206,7 +207,7 @@ float cost(neural_network *nn, const dataset *test_dataset, size_t num_test) {
 
     layer *output_layer = nn->layers[nn->length - 1];
     for (size_t i = 0; i < num_test; i++) {
-        data *test_data = test_dataset->datas[rand() % test_dataset->length];
+        data *test_data = test_dataset->datas[prand32() % test_dataset->length];
         compute_network(nn, test_data->inputs);
         for (size_t j = 0; j < output_layer->length; j++) {
             float output = output_layer->output[j];

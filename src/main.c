@@ -7,6 +7,7 @@
 #include <time.h>
 
 #include "cneuron/cneuron.h"
+#include "prand32.h"
 
 const size_t IMAGE_SIZE = 28;
 
@@ -97,7 +98,8 @@ dataset *get_mnist(bool is_test) {
 }
 
 int main(int argc, char **argv) {
-    srand(time(NULL));
+    sprand32(time(NULL));
+
     dataset *train_dataset = get_mnist(false);
     dataset *test_dataset = get_mnist(true);
     size_t network_length = 3;
