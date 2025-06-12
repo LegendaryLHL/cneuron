@@ -32,6 +32,8 @@ set(PROFILE_FLAG -O3 -p -g)
 
 function(apply_target target)
     target_include_directories(${target} PRIVATE ${CMAKE_SOURCE_DIR}/include)
+    target_include_directories(${target} PRIVATE ${CMAKE_SOURCE_DIR}/external)
+    target_include_directories(${target} PRIVATE ${CMAKE_SOURCE_DIR}/src)
     target_compile_options(${target} PRIVATE ${WARNING_FLAGS})
     target_link_libraries(libcneuron PRIVATE ${BLAS_LIBRARIES} m)
 

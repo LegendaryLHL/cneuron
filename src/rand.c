@@ -1,7 +1,7 @@
+#include "rand.h"
+
 #include <assert.h>
 #include <string.h>
-
-#include "rand.h"
 
 uint8_t randnum_u8(struct rand_chunk *randc, uint8_t min, uint8_t max) {
     assert(max > min);
@@ -34,7 +34,7 @@ float randf(struct rand_chunk *randc, float range, float offset) {
     return randfloat;
 }
 
-//NOTE: example
+// NOTE: example
 
 // int main() {
 //     prng_state state;
