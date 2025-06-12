@@ -15,7 +15,10 @@ inline uint32_t prand32(void) {
     return state;
 }
 
-// 0.0f - 1.0f
+inline uint32_t prand32_index(uint32_t length) {
+    return ((uint64_t)prand32() * length) >> 32;
+}
+
 inline float prand32f(void) {
     return (prand32() >> 8) * (1.0f / 16777216.0f);
 }

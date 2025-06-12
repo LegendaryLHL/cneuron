@@ -4,9 +4,12 @@
 #include <assert.h>
 #include <stdint.h>
 
-extern uint32_t state;
+void ensure_seeded(void);
 
 uint32_t prand32(void);
+
+// Select random index [0, length)
+uint32_t prand32_index(uint32_t length);
 
 // 0.0f - 1.0f
 float prand32f(void);

@@ -122,7 +122,7 @@ TEST(NetworkTest, StochasticGDSingleLayer) {
 
     for (size_t i = 0; i < 50000; i++) {
         for (size_t j = 0; j < test_dataset->length; j++) {
-            stochastic_gd(nn, 0.03f, test_dataset->datas[prand32() % test_dataset->length]);
+            stochastic_gd(nn, 0.03f, test_dataset->datas[prand32_index(test_dataset->length)]);
         }
         if (i % 10000 == 0) {
             printf("Single layer learn cost: %f\n", cost(nn, test_dataset, test_dataset->length));
@@ -149,7 +149,7 @@ TEST(NetworkTest, StochasticGDTests) {
 
     for (size_t i = 0; i < 500000; i++) {
         for (size_t j = 0; j < test_dataset->length; j++) {
-            stochastic_gd(nn, 0.001f, test_dataset->datas[prand32() % test_dataset->length]);
+            stochastic_gd(nn, 0.001f, test_dataset->datas[prand32_index(test_dataset->length)]);
         }
         if (i % 100000 == 0) {
             printf("Stochastic Multi layer learn cost: %f\n", cost(nn, test_dataset, test_dataset->length));
@@ -170,7 +170,7 @@ TEST(NetworkTest, StochasticGDTests) {
 
     for (size_t i = 0; i < 50000; i++) {
         for (size_t j = 0; j < test_dataset->length; j++) {
-            stochastic_gd(nn, 0.03f, test_dataset->datas[prand32() % test_dataset->length]);
+            stochastic_gd(nn, 0.03f, test_dataset->datas[prand32_index(test_dataset->length)]);
         }
         if (i % 10000 == 0) {
             printf("Stochastic Non-linearly separable learn cost: %f\n", cost(nn, test_dataset, test_dataset->length));
