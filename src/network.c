@@ -201,7 +201,7 @@ float cost(neural_network *nn, const dataset *test_dataset, size_t num_test) {
 
     layer *output_layer = nn->layers[nn->length - 1];
     for (size_t i = 0; i < num_test; i++) {
-        data *test_data = test_dataset->datas[randnum_u32(&randc, 0, test_dataset->length)];
+        data *test_data = test_dataset->datas[randnum_u32(&randc, test_dataset->length, 0)];
         compute_network(nn, test_data->inputs);
         for (size_t j = 0; j < output_layer->length; j++) {
             float output = output_layer->output[j];

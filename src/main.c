@@ -98,8 +98,6 @@ dataset *get_mnist(bool is_test) {
 }
 
 int main(int argc, char **argv) {
-    static uint64_t seed[4] = {0x9E3779B97F4A7C15, 0xF39CC0605CEDC834, 0x1082276BF3A27251, 0xF86C6A11D0C18E95};
-    prng_init(&__randstate, seed);
     dataset *train_dataset = get_mnist(false);
     dataset *test_dataset = get_mnist(true);
     size_t network_length = 3;
