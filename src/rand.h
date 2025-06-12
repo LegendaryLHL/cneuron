@@ -14,6 +14,6 @@ uint8_t randnum_u8(struct rand_chunk *randc, uint8_t min, uint8_t max);
 uint32_t randnum_u32(struct rand_chunk *randc, uint32_t min, uint32_t max);
 float randf(struct rand_chunk *randc, float range, float offset);
 
-prng_state __randstate;
-struct rand_chunk randc = {0};
+static prng_state __randstate;
+static struct rand_chunk randc = {0};
 #endif

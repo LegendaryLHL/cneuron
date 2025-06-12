@@ -185,7 +185,7 @@ static uint64_t phi[16] = {
     0xFEC507705E4AE6E5,
 };
 
-void prng_init(prng_state *s, uint64_t seed[4]) {
+static void prng_init(prng_state *s, uint64_t seed[4]) {
     // Note: output is uninitialized at first, but since we pass NULL, its value
     // is initially ignored.
     s->counter[0] = _mm_setzero_si128();

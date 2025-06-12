@@ -3,7 +3,6 @@
 
 #include <stdbool.h>
 #include <stddef.h>
-#include "rand.h"
 
 /**
  * @brief Represents a single data element with its inputs and expected output index.

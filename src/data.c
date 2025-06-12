@@ -7,6 +7,7 @@
 #include <string.h>
 
 #include "cneuron/cneuron.h"
+#include "rand.h"
 
 #define BACKGROUND_VALUE 0.0f
 

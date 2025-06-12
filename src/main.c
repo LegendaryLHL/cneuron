@@ -7,6 +7,7 @@
 #include <time.h>
 
 #include "cneuron/cneuron.h"
+#include "rand.h"
 
 const size_t IMAGE_SIZE = 28;
 
