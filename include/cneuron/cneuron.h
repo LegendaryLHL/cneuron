@@ -3,6 +3,7 @@
 
 #include <stdbool.h>
 #include <stddef.h>
+#include "rand.h"
 
 /**
  * @brief Represents a single data element with its inputs and expected output index.
@@ -164,7 +165,6 @@ typedef struct {
  * @param max Maximum value for the random number.
  * @return A random float between min and max.
  */
-float random_float(float min, float max);
 
 /**
  * @brief Allocates and initializes a new layer.
