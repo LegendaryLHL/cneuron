@@ -10,10 +10,13 @@ extern "C" {
 #include "test_utils.h"
 
 TEST(NetworkTest, RandomFloat) {
-    float test = randf(&randc, 0.0f, 1.0f);
+    // static uint64_t seed[4] = {0x9E3779B97F4A7C15, 0xF39CC0605CEDC834, 0x1082276BF3A27251, 0xF86C6A11D0C18E95};
+    // prng_init(&__randstate, seed);
+    // prng_gen(&__randstate, randc.buf, 1024);
+    float test = randf(&randc, 1.0f, 0.0f);
     bool same = true;
     for (int i = 0; i < 10; i++) {
-        if (test != randf(&randc, 0.0f, 1.0f)) {
+        if (test != randf(&randc, 1.0f, 0.0f)) {
             same = false;
             break;
         }
