@@ -11,7 +11,7 @@
 #endif
 
 #include "cneuron/cneuron.h"
-#include "prand32.h"
+#include "rand.h"
 
 const size_t IMAGE_SIZE = 28;
 
@@ -39,9 +39,9 @@ dataset *dataset_generator(generator_args *args) {
     dataset *batch_dataset = get_random_dataset_sample(args->train_dataset, args->batch_size);
     for (size_t i = 0; i < batch_dataset->length; i++) {
         data *data = batch_dataset->datas[i];
-        rotate_data(data, IMAGE_SIZE, IMAGE_SIZE, prand32f_range(-5.0f, 5.0f));
-        scale_data(data, IMAGE_SIZE, IMAGE_SIZE, prand32f_range(0.9f, 1.1f));
-        offset_data(data, IMAGE_SIZE, IMAGE_SIZE, prand32f_range(-3.0f, 3.0f), prand32f_range(-3.0f, 3.0f));
+        rotate_data(data, IMAGE_SIZE, IMAGE_SIZE, randf(10.0f, -5.0f));
+        scale_data(data, IMAGE_SIZE, IMAGE_SIZE, randf(1.2f, -0.1f));
+        offset_data(data, IMAGE_SIZE, IMAGE_SIZE, randf(6.0f, -3.0f), randf(6.0f, -3.0f));
         noise_data(data, IMAGE_SIZE * IMAGE_SIZE, 0.3f, 0.08f);
     }
     return batch_dataset;

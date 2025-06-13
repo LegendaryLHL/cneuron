@@ -3,7 +3,7 @@ project(cneuron C CXX)
 
 set(CMAKE_C_STANDARD 17)
 set(CMAKE_C_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
@@ -37,6 +37,7 @@ function(apply_target target)
     endif()
 
     target_include_directories(${target} PRIVATE ${CMAKE_SOURCE_DIR}/include)
+    target_include_directories(${target} PRIVATE ${CMAKE_SOURCE_DIR}/external)
     target_include_directories(${target} PRIVATE ${CMAKE_SOURCE_DIR}/src)
     target_compile_options(${target} PRIVATE ${WARNING_FLAGS})
     target_link_libraries(libcneuron PRIVATE ${BLAS_LIBRARIES} m)

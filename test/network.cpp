@@ -2,12 +2,24 @@
 
 extern "C" {
 #include "cneuron/cneuron.h"
-#include "prand32.h"
+#include "rand.h"
 }
 
 #include <math.h>
 
 #include "test_utils.h"
+
+TEST(NetworkTest, RandomFloat) {
+    float test = randf(1.0f, 0.0f);
+    bool same = true;
+    for (int i = 0; i < 10; i++) {
+        if (test != randf(1.0f, 0.0f)) {
+            same = false;
+            break;
+        }
+    }
+    ASSERT_FALSE(same);
+}
 
 TEST(NetworkTest, GetLayer) {
     size_t layer_length = 3;
@@ -122,7 +134,7 @@ TEST(NetworkTest, StochasticGDSingleLayer) {
 
     for (size_t i = 0; i < 50000; i++) {
         for (size_t j = 0; j < test_dataset->length; j++) {
-            stochastic_gd(nn, 0.03f, test_dataset->datas[prand32_index(test_dataset->length)]);
+            stochastic_gd(nn, 0.03f, test_dataset->datas[randnum_u32(test_dataset->length, 0)]);
         }
         if (i % 10000 == 0) {
             printf("Single layer learn cost: %f\n", cost(nn, test_dataset, test_dataset->length));
@@ -149,7 +161,7 @@ TEST(NetworkTest, StochasticGDTests) {
 
     for (size_t i = 0; i < 500000; i++) {
         for (size_t j = 0; j < test_dataset->length; j++) {
-            stochastic_gd(nn, 0.001f, test_dataset->datas[prand32_index(test_dataset->length)]);
+            stochastic_gd(nn, 0.001f, test_dataset->datas[randnum_u32(test_dataset->length, 0)]);
         }
         if (i % 100000 == 0) {
             printf("Stochastic Multi layer learn cost: %f\n", cost(nn, test_dataset, test_dataset->length));
@@ -170,7 +182,7 @@ TEST(NetworkTest, StochasticGDTests) {
 
     for (size_t i = 0; i < 50000; i++) {
         for (size_t j = 0; j < test_dataset->length; j++) {
-            stochastic_gd(nn, 0.03f, test_dataset->datas[prand32_index(test_dataset->length)]);
+            stochastic_gd(nn, 0.03f, test_dataset->datas[randnum_u32(test_dataset->length, 0)]);
         }
         if (i % 10000 == 0) {
             printf("Stochastic Non-linearly separable learn cost: %f\n", cost(nn, test_dataset, test_dataset->length));
@@ -195,7 +207,7 @@ TEST(NetworkTest, MiniBatchGDTests) {
     layer_lengths[1] = 2;
     neural_network *nn = get_neural_network(layer_length, layer_lengths, test_dataset->inputs_length, &sigmoid);
 
-    for (size_t i = 0; i < 1500000; i++) {
+    for (size_t i = 0; i < 2000000; i++) {
         dataset *batch_dataset = get_random_dataset_sample(test_dataset, test_dataset->length);
         mini_batch_gd(nn, 0.001f, batch_dataset);
         free_dataset(batch_dataset);
