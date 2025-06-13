@@ -34,7 +34,7 @@ uint32_t randnum_u32(struct rand_chunk *randc, uint32_t range, uint32_t offset) 
     memcpy(&value, &randc->buf[randc->count], sizeof(value));
     uint32_t randnum = ((uint64_t)value * range) >> 32;
     randnum += offset;
-    // randc->count += sizeof(uint32_t);
+    randc->count += sizeof(randnum);
     if (randc->count > 1020) {
 	randc->count = 0;
 	prng_gen(&__randstate, randc->buf, 1024);
