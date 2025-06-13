@@ -6,6 +6,10 @@
 #include <string.h>
 #include <time.h>
 
+#ifdef USE_THREADING
+#include <pthread.h>
+#endif
+
 #include "cneuron/cneuron.h"
 #include "prand32.h"
 
@@ -26,8 +30,6 @@ float relu(float val, bool is_deravative) {
     return fmax(0.0f, val);
 }
 
-#include <pthread.h>
-
 typedef struct {
     dataset *train_dataset;
     size_t batch_size;
@@ -46,7 +48,9 @@ dataset *churn_dataset(churn *churn) {
 }
 
 void train(neural_network *nn, dataset *train_dataset, dataset *test_dataset, float learn_rate, int batch_amount, int log_amount, size_t batch_size) {
+#ifdef USE_THREADING
     pthread_t thread;
+#endif
     churn churner = (churn) {.train_dataset=train_dataset, .batch_size=batch_size};
     clock_t start_time = clock();
     dataset *batch_dataset = churn_dataset(&churner);
@@ -60,10 +64,16 @@ void train(neural_network *nn, dataset *train_dataset, dataset *test_dataset, fl
             start_time = clock();
         }
 
+#ifdef USE_THREADING
         pthread_create(&thread, NULL, (void *(*)(void *))churn_dataset, &churner);
         mini_batch_gd(nn, learn_rate, batch_dataset);
         free_dataset(batch_dataset);
         pthread_join(thread, (void **)&batch_dataset);
+#else
+        mini_batch_gd(nn, learn_rate, batch_dataset);
+        free_dataset(batch_dataset);
+        batch_dataset = churn_dataset(&churner);
+#endif
     }
 }
 
