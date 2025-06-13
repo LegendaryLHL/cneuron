@@ -33,10 +33,10 @@ float relu(float val, bool is_deravative) {
 typedef struct {
     dataset *train_dataset;
     size_t batch_size;
-} churn;
+} generator_args;
 
-dataset *churn_dataset(churn *churn) {
-    dataset *batch_dataset = get_random_dataset_sample(churn->train_dataset, churn->batch_size);
+dataset *dataset_generator(generator_args *args) {
+    dataset *batch_dataset = get_random_dataset_sample(args->train_dataset, args->batch_size);
     for (size_t i = 0; i < batch_dataset->length; i++) {
         data *data = batch_dataset->datas[i];
         rotate_data(data, IMAGE_SIZE, IMAGE_SIZE, prand32f_range(-5.0f, 5.0f));
@@ -51,9 +51,9 @@ void train(neural_network *nn, dataset *train_dataset, dataset *test_dataset, fl
 #ifdef USE_THREADING
     pthread_t thread;
 #endif
-    churn churner = (churn) {.train_dataset=train_dataset, .batch_size=batch_size};
+    generator_args args = (generator_args){.train_dataset = train_dataset, .batch_size = batch_size};
     clock_t start_time = clock();
-    dataset *batch_dataset = churn_dataset(&churner);
+    dataset *batch_dataset = dataset_generator(&args);
     for (int i = 0; i < batch_amount; i++) {
         if (i % log_amount == 0 && i != 0) {
             float new_cost = cost(nn, test_dataset, 100);
@@ -65,16 +65,20 @@ void train(neural_network *nn, dataset *train_dataset, dataset *test_dataset, fl
         }
 
 #ifdef USE_THREADING
-        pthread_create(&thread, NULL, (void *(*)(void *))churn_dataset, &churner);
+        pthread_create(&thread, NULL, (void *(*)(void *))dataset_generator, &args);
         mini_batch_gd(nn, learn_rate, batch_dataset);
         free_dataset(batch_dataset);
-        pthread_join(thread, (void **)&batch_dataset);
+        void *result = NULL;
+        pthread_join(thread, &result);
+        batch_dataset = (dataset *)result;
 #else
         mini_batch_gd(nn, learn_rate, batch_dataset);
         free_dataset(batch_dataset);
-        batch_dataset = churn_dataset(&churner);
+        batch_dataset = dataset_generator(&args);
 #endif
     }
+    // Last dataset not used
+    free_dataset(batch_dataset);
 }
 
 dataset *get_mnist(bool is_test) {
@@ -138,7 +142,7 @@ int main(int argc, char **argv) {
     // Parameters
     float learn_rate = 1.5f;
     size_t batch_size = 30;
-    int learn_amount = 4800000;
+    int learn_amount = 48000000;
     int batch_amount = learn_amount / batch_size;
     int log_amount = 200;  // Log once reached a number of batch
 
