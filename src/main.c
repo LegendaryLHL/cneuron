@@ -40,9 +40,9 @@ void train(neural_network *nn, dataset *train_dataset, dataset *test_dataset, fl
         dataset *batch_dataset = get_random_dataset_sample(train_dataset, batch_size);
         for (size_t i = 0; i < batch_dataset->length; i++) {
             data *data = batch_dataset->datas[i];
-            rotate_data(data, IMAGE_SIZE, IMAGE_SIZE, randf(&randc, 10.0f, -5.0f));
-            scale_data(data, IMAGE_SIZE, IMAGE_SIZE, randf(&randc, 1.2f, -0.1f));
-            offset_data(data, IMAGE_SIZE, IMAGE_SIZE, randf(&randc, 6.0f, -3.0f), randf(&randc, 6.0f, -3.0f));
+            rotate_data(data, IMAGE_SIZE, IMAGE_SIZE, randf(10.0f, -5.0f));
+            scale_data(data, IMAGE_SIZE, IMAGE_SIZE, randf(1.2f, -0.1f));
+            offset_data(data, IMAGE_SIZE, IMAGE_SIZE, randf(6.0f, -3.0f), randf(6.0f, -3.0f));
             noise_data(data, IMAGE_SIZE * IMAGE_SIZE, 0.3f, 0.08f);
         }
         mini_batch_gd(nn, learn_rate, batch_dataset);

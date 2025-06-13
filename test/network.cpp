@@ -1,8 +1,8 @@
 #include <gtest/gtest.h>
 
 extern "C" {
-#include "cneuron/cneuron.h"
 #include "../src/rand.h"
+#include "cneuron/cneuron.h"
 }
 
 #include <math.h>
@@ -10,13 +10,10 @@ extern "C" {
 #include "test_utils.h"
 
 TEST(NetworkTest, RandomFloat) {
-    // static uint64_t seed[4] = {0x9E3779B97F4A7C15, 0xF39CC0605CEDC834, 0x1082276BF3A27251, 0xF86C6A11D0C18E95};
-    // prng_init(&__randstate, seed);
-    // prng_gen(&__randstate, randc.buf, 1024);
-    float test = randf(&randc, 1.0f, 0.0f);
+    float test = randf(1.0f, 0.0f);
     bool same = true;
     for (int i = 0; i < 10; i++) {
-        if (test != randf(&randc, 1.0f, 0.0f)) {
+        if (test != randf(1.0f, 0.0f)) {
             same = false;
             break;
         }
@@ -137,7 +134,7 @@ TEST(NetworkTest, StochasticGDSingleLayer) {
 
     for (size_t i = 0; i < 50000; i++) {
         for (size_t j = 0; j < test_dataset->length; j++) {
-            stochastic_gd(nn, 0.03f, test_dataset->datas[rand() % test_dataset->length]);
+            stochastic_gd(nn, 0.03f, test_dataset->datas[randnum_u32(test_dataset->length, 0)]);
         }
         if (i % 10000 == 0) {
             printf("Single layer learn cost: %f\n", cost(nn, test_dataset, test_dataset->length));
@@ -164,7 +161,7 @@ TEST(NetworkTest, StochasticGDTests) {
 
     for (size_t i = 0; i < 500000; i++) {
         for (size_t j = 0; j < test_dataset->length; j++) {
-            stochastic_gd(nn, 0.001f, test_dataset->datas[rand() % test_dataset->length]);
+            stochastic_gd(nn, 0.001f, test_dataset->datas[randnum_u32(test_dataset->length, 0)]);
         }
         if (i % 100000 == 0) {
             printf("Stochastic Multi layer learn cost: %f\n", cost(nn, test_dataset, test_dataset->length));
@@ -185,7 +182,7 @@ TEST(NetworkTest, StochasticGDTests) {
 
     for (size_t i = 0; i < 50000; i++) {
         for (size_t j = 0; j < test_dataset->length; j++) {
-            stochastic_gd(nn, 0.03f, test_dataset->datas[rand() % test_dataset->length]);
+            stochastic_gd(nn, 0.03f, test_dataset->datas[randnum_u32(test_dataset->length, 0)]);
         }
         if (i % 10000 == 0) {
             printf("Stochastic Non-linearly separable learn cost: %f\n", cost(nn, test_dataset, test_dataset->length));
