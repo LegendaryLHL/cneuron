@@ -1,6 +1,7 @@
 #include "rand.h"
 
 #include <assert.h>
+#include <stdlib.h>
 #include <string.h>
 #include "shishua/shishua-sse2.h"
 
@@ -44,11 +45,15 @@ uint32_t randnum_u32(struct rand_chunk *randc, uint32_t range, uint32_t offset) 
 float randf(struct rand_chunk *randc, float range, float offset) {
     assert(range);
     assert(randc->count <= 1021);
-    uint32_t value;
-    memcpy(&value, &randc->buf[randc->count], 3);
-    // float randfloat = ((float)value / UINT32_MAX) * range + offset;
-    float randfloat = (value / 16777216.0f) * range + offset;
-    randc->count += 3;
+    // uint32_t value;
+    // memcpy(&value, &randc->buf[randc->count], 4);
+    uint32_t value = randc->buf[randc->count++] << 16 | randc->buf[randc->count++] << 8 | randc->buf[randc->count++];
+    // value |= 0x3F800000;
+    // float randfloat;
+    // randfloat = *(float *)&value;
+    // memcpy(&randfloat, &value, sizeof(randfloat));
+    // randfloat = (randfloat - 1) * range + offset;
+    float randfloat = (value) / 16777216.0f * range + offset;
     if (randc->count > 1021) {
 	randc->count = 0;
 	prng_gen(&__randstate, randc->buf, 1024);
