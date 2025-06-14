@@ -38,7 +38,7 @@ typedef struct {
 dataset *dataset_generator(generator_args *args) {
     dataset *batch_dataset = get_random_dataset_sample(args->train_dataset, args->batch_size);
     for (size_t i = 0; i < batch_dataset->length; i++) {
-        data *data = batch_dataset->datas[i];
+        data *data = &batch_dataset->datas[i];
         rotate_data(data, IMAGE_SIZE, IMAGE_SIZE, randf(10.0f, -5.0f));
         scale_data(data, IMAGE_SIZE, IMAGE_SIZE, randf(1.2f, -0.1f));
         offset_data(data, IMAGE_SIZE, IMAGE_SIZE, randf(6.0f, -3.0f), randf(6.0f, -3.0f));
@@ -67,18 +67,18 @@ void train(neural_network *nn, dataset *train_dataset, dataset *test_dataset, fl
 #ifdef USE_THREADING
         pthread_create(&thread, NULL, (void *(*)(void *))dataset_generator, &args);
         mini_batch_gd(nn, learn_rate, batch_dataset);
-        free_dataset(batch_dataset);
+        free(batch_dataset);
         void *result = NULL;
         pthread_join(thread, &result);
         batch_dataset = (dataset *)result;
 #else
         mini_batch_gd(nn, learn_rate, batch_dataset);
-        free_dataset(batch_dataset);
+        free(batch_dataset);
         batch_dataset = dataset_generator(&args);
 #endif
     }
     // Last dataset not used
-    free_dataset(batch_dataset);
+    free(batch_dataset);
 }
 
 dataset *get_mnist(bool is_test) {
@@ -103,20 +103,18 @@ dataset *get_mnist(bool is_test) {
     for (size_t i = 0; i < 10; i++) {
         total_length += datasets[i]->length;
     }
+    size_t inputs_length = datasets[0]->inputs_length;
 
-    dataset *mnist_dataset = malloc(sizeof(dataset));
-    mnist_dataset->datas = malloc(sizeof(data *) * total_length);
-    mnist_dataset->length = total_length;
-    mnist_dataset->inputs_length = IMAGE_SIZE * IMAGE_SIZE;
+    dataset *mnist_dataset = alloc_dataset(total_length, inputs_length);
 
     size_t curr_count = 0;
     for (size_t i = 0; i < 10; i++) {
         for (size_t j = 0; j < datasets[i]->length; j++) {
-            mnist_dataset->datas[curr_count] = datasets[i]->datas[j];
+            data *curr_data = &mnist_dataset->datas[curr_count];
+            copy_data(curr_data, &datasets[i]->datas[j], inputs_length);
             curr_count++;
         }
 
-        free(datasets[i]->datas);
         free(datasets[i]);
     }
 
@@ -142,9 +140,9 @@ int main(int argc, char **argv) {
     // Parameters
     float learn_rate = 1.5f;
     size_t batch_size = 30;
-    int learn_amount = 48000000;
+    int learn_amount = 4800000;
     int batch_amount = learn_amount / batch_size;
-    int log_amount = 200;  // Log once reached a number of batch
+    int log_amount = 1000;  // Log once reached a number of batch
 
     char cmd[100];
     FILE *fp;
@@ -223,8 +221,8 @@ int main(int argc, char **argv) {
             continue;
         }
     }
-    free_dataset(train_dataset);
-    free_dataset(test_dataset);
+    free(train_dataset);
+    free(test_dataset);
     free_neural_network(nn);
     free(layer_lengths);
     return 0;

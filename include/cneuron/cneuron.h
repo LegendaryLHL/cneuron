@@ -8,8 +8,8 @@
  * @brief Represents a single data element with its inputs and expected output index.
  */
 typedef struct {
-    float *inputs;         /**< Pointer to an array of input values. */
     size_t expected_index; /**< Index of the expected output label. */
+    float *inputs;         /**< Pointer to an array of input values. */
 } data;
 
 /**
@@ -18,8 +18,27 @@ typedef struct {
 typedef struct {
     size_t length;        /**< Number of data elements in the dataset. */
     size_t inputs_length; /**< Number of input values per data element. */
-    data **datas;         /**< Array of pointers containing the datas */
+    data *datas;          /**< Array containing the datas */
 } dataset;
+
+/**
+ * @brief Allocate and setup a data
+ *
+ * @return inputs_length number of input of the data
+ *
+ * @data newly allocated data
+ */
+data *alloc_data(size_t inputs_length);
+
+/**
+ * @brief Allocate and setup a dataset
+ *
+ * @return dataset_length number of data of the dataset
+ * @return inputs_length number of input of the data
+ *
+ * @data newly allocated dataset
+ */
+dataset *alloc_dataset(size_t dataset_length, size_t inputs_length);
 
 /**
  * @brief Reads a dataset from the specified file.
@@ -30,27 +49,13 @@ typedef struct {
 dataset *get_dataset(const char *filename);
 
 /**
- * @brief Frees all memory associated with a 'dataset' structure and its contents.
- *
- * @param dataset Pointer to the dataset to be freed.
- */
-void free_dataset(dataset *dataset);
-
-/**
- * @brief Frees all memory associated with a 'data' structure and its conetents.
- *
- * @param data Pointer to the data element to be freed.
- */
-void free_data(data *data);
-
-/**
- * @brief Creates a copy of a 'data' structure.
+ * @brief Copy a 'data' structure.
  *
  * @param source_data Pointer to the original data element to copy.
+ * @param target_data Pointer to the destination data element to perform deep copy.
  * @param inputs_length Number of input values in the data element.
- * @return Pointer to the newly created copy of the 'data' structure.
  */
-data *get_data_copy(const data *source_data, size_t inputs_length);
+void copy_data(data *target_data, const data *source_data, size_t inputs_length);
 
 /**
  * @brief Creates allocate new dataset and select random copy of data from a source dataset.

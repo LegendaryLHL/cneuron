@@ -46,7 +46,6 @@ function(apply_target target)
     target_include_directories(${target} PRIVATE ${CMAKE_SOURCE_DIR}/external)
     target_include_directories(${target} PRIVATE ${CMAKE_SOURCE_DIR}/src)
     target_compile_options(${target} PRIVATE ${WARNING_FLAGS})
-    target_link_libraries(libcneuron PRIVATE ${BLAS_LIBRARIES} m)
 
     if(CMAKE_BUILD_TYPE STREQUAL "Debug")
         target_compile_options(${target} PRIVATE ${ASAN_FLAGS} -g)
@@ -61,6 +60,7 @@ endfunction()
 # libcneuron library
 add_library(libcneuron ${SRC_FILES})
 apply_target(libcneuron)
+target_link_libraries(libcneuron PRIVATE ${BLAS_LIBRARIES} m)
 
 # Main executable
 add_executable(${PROJECT_NAME} src/main.c)

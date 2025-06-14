@@ -17,8 +17,7 @@
 
 layer *get_layer(size_t length, size_t prev_length) {
     layer *new_layer = calloc(1, sizeof(layer));
-    if (!new_layer)
-        return NULL;
+    if (!new_layer) return NULL;
 
     new_layer->length = length;
 
@@ -63,8 +62,7 @@ neural_network *get_neural_network(size_t layer_length, const size_t *layer_leng
     assert(layer_lengths);
 
     neural_network *nn = malloc(sizeof(neural_network));
-    if (!nn)
-        return NULL;
+    if (!nn) return NULL;
 
     // Use calloc for freeing when error
     nn->layers = calloc(layer_length, sizeof(layer));
@@ -94,8 +92,7 @@ neural_network *get_neural_network(size_t layer_length, const size_t *layer_leng
 }
 
 void free_layer(layer *layer) {
-    if (!layer)
-        return;
+    if (!layer) return;
 
     free(layer->weighted_input);
     free(layer->output);
@@ -106,8 +103,7 @@ void free_layer(layer *layer) {
 }
 
 void free_neural_network(neural_network *nn) {
-    if (!nn)
-        return;
+    if (!nn) return;
 
     for (size_t i = 0; i < nn->length; i++)
         free_layer(nn->layers[i]);
@@ -157,8 +153,7 @@ void print_activation_percentages(neural_network *nn) {
 
     layer *output_layer = nn->layers[nn->length - 1];
     float *percentages = malloc(sizeof(float) * output_layer->length);
-    if (!percentages)
-        return;
+    if (!percentages) return;
 
     size_t *indices = malloc(sizeof(size_t) * output_layer->length);
     if (!indices) {
@@ -206,7 +201,7 @@ float cost(neural_network *nn, const dataset *test_dataset, size_t num_test) {
 
     layer *output_layer = nn->layers[nn->length - 1];
     for (size_t i = 0; i < num_test; i++) {
-        data *test_data = test_dataset->datas[randnum_u32(test_dataset->length, 0)];
+        data *test_data = &test_dataset->datas[randnum_u32(test_dataset->length, 0)];
         compute_network(nn, test_data->inputs);
         for (size_t j = 0; j < output_layer->length; j++) {
             float output = output_layer->output[j];
@@ -322,7 +317,7 @@ void *thread_worker(void *arg) {
     }
 
     for (size_t i = 0; i < args->data_batch->length; i++) {
-        data *data = args->data_batch->datas[i];
+        data *data = &args->data_batch->datas[i];
         compute_network(nn, data->inputs);
 
         for (size_t j = 0; j < nn->length; j++) {
@@ -463,13 +458,13 @@ float test_network_percent(neural_network *nn, const dataset *test_dataset) {
 
     int correct = 0;
     for (size_t i = 0; i < test_dataset->length; i++) {
-        compute_network(nn, test_dataset->datas[i]->inputs);
+        compute_network(nn, test_dataset->datas[i].inputs);
         size_t max = 0;
         for (size_t j = 0; j < nn->layers[nn->length - 1]->length; j++) {
             if (softmax(nn, j) > softmax(nn, max))
                 max = j;
         }
-        if (max == test_dataset->datas[i]->expected_index) {
+        if (max == test_dataset->datas[i].expected_index) {
             correct++;
         }
     }
