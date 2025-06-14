@@ -21,22 +21,6 @@ TEST(NetworkTest, RandomFloat) {
     ASSERT_FALSE(same);
 }
 
-TEST(NetworkTest, GetLayer) {
-    size_t layer_length = 3;
-    layer *test_layer = get_layer(layer_length, 5);
-
-    ASSERT_NE(test_layer, nullptr);
-    ASSERT_NE(test_layer->delta, nullptr);
-    ASSERT_NE(test_layer->weighted_input, nullptr);
-    ASSERT_NE(test_layer->weights, nullptr);
-    ASSERT_NE(test_layer->bias, nullptr);
-    ASSERT_NE(test_layer->output, nullptr);
-
-    ASSERT_EQ(test_layer->length, layer_length);
-
-    free_layer(test_layer);
-}
-
 TEST(NetworkTest, GetNeuralNetwork) {
     size_t layer_length = 3;
     size_t *layer_lengths = (size_t *)malloc(sizeof(size_t) * layer_length);
@@ -52,11 +36,10 @@ TEST(NetworkTest, GetNeuralNetwork) {
     ASSERT_EQ(nn->activation_function, &sigmoid);
     ASSERT_NE(nn->layers, nullptr);
     for (size_t i = 0; i < layer_length; i++) {
-        ASSERT_NE(nn->layers[i], nullptr);
-        ASSERT_EQ(nn->layers[i]->length, layer_lengths[i]);
+        ASSERT_EQ(nn->layers[i].length, layer_lengths[i]);
     }
 
-    free_neural_network(nn);
+    free(nn);
     free(layer_lengths);
 }
 
@@ -66,17 +49,9 @@ TEST(NetworkTest, FreeDataset) {
     layer_lengths[0] = 2;
     neural_network *nn = get_neural_network(layer_length, layer_lengths, 2, nullptr);
 
-    free_neural_network(nn);
+    free(nn);
     // No crash
     free(layer_lengths);
-}
-
-TEST(NetworkTest, FreeLayer) {
-    size_t layer_length = 2;
-    layer *test_layer = get_layer(layer_length, 3);
-
-    free_layer(test_layer);
-    // No crash
 }
 
 TEST(NetworkTest, ComputeNetwork) {
@@ -89,15 +64,15 @@ TEST(NetworkTest, ComputeNetwork) {
     float *inputs = (float *)malloc(sizeof(float) * inputs_length);
     inputs[0] = 0.2f;
 
-    nn->layers[0]->weights[0] = 0.5f;
-    nn->layers[0]->bias[0] = 0.3f;
+    nn->layers[0].weights[0] = 0.5f;
+    nn->layers[0].bias[0] = 0.3f;
 
     compute_network(nn, inputs);
 
-    ASSERT_FLOAT_EQ(nn->layers[0]->output[0], 0.59868766f);
+    ASSERT_FLOAT_EQ(nn->layers[0].output[0], 0.59868766f);
 
     free(inputs);
-    free_neural_network(nn);
+    free(nn);
     free(layer_lengths);
 }
 
@@ -108,15 +83,15 @@ TEST(NetworkTest, Softmax) {
     layer_lengths[0] = 3;
     neural_network *nn = get_neural_network(layer_length, layer_lengths, inputs_length, &sigmoid);
 
-    nn->layers[0]->output[0] = 0.2f;
-    nn->layers[0]->output[1] = 0.3f;
-    nn->layers[0]->output[2] = 0.5f;
+    nn->layers[0].output[0] = 0.2f;
+    nn->layers[0].output[1] = 0.3f;
+    nn->layers[0].output[2] = 0.5f;
 
     ASSERT_FLOAT_EQ(softmax(nn, 0), 0.28943311f);
     ASSERT_FLOAT_EQ(softmax(nn, 1), 0.31987305f);
     ASSERT_FLOAT_EQ(softmax(nn, 2), 0.39069383f);
 
-    free_neural_network(nn);
+    free(nn);
     free(layer_lengths);
 }
 
@@ -143,7 +118,7 @@ TEST(NetworkTest, StochasticGDSingleLayer) {
     ASSERT_GE(test_network_percent(nn, test_dataset), 90.0f);
 
     free(test_dataset);
-    free_neural_network(nn);
+    free(nn);
     free(layer_lengths);
 }
 
@@ -169,7 +144,7 @@ TEST(NetworkTest, StochasticGDTests) {
     ASSERT_LE(cost(nn, test_dataset, test_dataset->length), 0.2f);
     ASSERT_GE(test_network_percent(nn, test_dataset), 90.0f);
 
-    free_neural_network(nn);
+    free(nn);
     free(layer_lengths);
 
     // Non-linearly separable test
@@ -190,7 +165,7 @@ TEST(NetworkTest, StochasticGDTests) {
     ASSERT_GE(cost(nn, test_dataset, test_dataset->length), 0.2f);
     ASSERT_LE(test_network_percent(nn, test_dataset), 90.0f);
 
-    free_neural_network(nn);
+    free(nn);
     free(layer_lengths);
     free(test_dataset);
 }
@@ -217,7 +192,7 @@ TEST(NetworkTest, MiniBatchGDTests) {
     ASSERT_LE(cost(nn, test_dataset, test_dataset->length), 0.2f);
     ASSERT_GE(test_network_percent(nn, test_dataset), 90.0f);
 
-    free_neural_network(nn);
+    free(nn);
     free(layer_lengths);
 
     // Non-linearly separable test
@@ -238,7 +213,7 @@ TEST(NetworkTest, MiniBatchGDTests) {
     ASSERT_GE(cost(nn, test_dataset, test_dataset->length), 0.2f);
     ASSERT_LE(test_network_percent(nn, test_dataset), 90.0f);
 
-    free_neural_network(nn);
+    free(nn);
     free(layer_lengths);
     free(test_dataset);
 }

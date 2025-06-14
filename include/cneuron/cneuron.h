@@ -24,19 +24,19 @@ typedef struct {
 /**
  * @brief Allocate and setup a data
  *
- * @return inputs_length number of input of the data
+ * @param inputs_length Number of input of the data
  *
- * @data newly allocated data
+ * @return Newly allocated data
  */
 data *alloc_data(size_t inputs_length);
 
 /**
  * @brief Allocate and setup a dataset
  *
- * @return dataset_length number of data of the dataset
- * @return inputs_length number of input of the data
+ * @param dataset_length Number of data of the dataset
+ * @param inputs_length Number of input of the data
  *
- * @data newly allocated dataset
+ * @return newly allocated dataset
  */
 dataset *alloc_dataset(size_t dataset_length, size_t inputs_length);
 
@@ -154,45 +154,34 @@ typedef struct layer {
  * @brief Represents a neural network with multiple layers.
  */
 typedef struct {
-    layer **layers;                            /**< Array of pointers to layers in the network. */
+    layer *layers;                             /**< Array of struct to layers in the network. */
     size_t length;                             /**< Number of layers in the network. */
     size_t inputs_length;                      /**< Number of inputs to the network. */
     float (*activation_function)(float, bool); /**< Pointer to the activation function used in the network. */
 } neural_network;
 
 /**
- * @brief Allocates and initializes a new layer.
+ * @brief Allocate and setup a neural_network
  *
- * @param length Number of neurons in this layer.
- * @param prev_length Number of neurons in the previous layer.
- * @return Pointer to the newly created layer.
+ * @param network_length Number of layers in the network.
+ * @param layers_length Array specifying the number of neurons in each layer.
+ * @param inputs_length Number of inputs to the network.
+ *
+ * @return Newly allocated data
  */
-layer *get_layer(size_t length, size_t prev_length);
+neural_network *alloc_neural_network(size_t network_length, const size_t *layers_length, size_t inputs_length);
 
 /**
  * @brief Allocates and initializes a new neural network.
  *
- * @param layer_length Number of layers in the network.
- * @param layer_lengths Array specifying the number of neurons in each layer.
+ * @param network_length Number of layers in the network.
+ * @param layers_length Array specifying the number of neurons in each layer.
  * @param inputs_length Number of inputs to the network.
  * @param activation_function Activation function to be used in the network.
+ *
  * @return Pointer to the newly created neural network.
  */
-neural_network *get_neural_network(size_t layer_length, const size_t *layer_lengths, size_t inputs_length, float (*activation_function)(float, bool));
-
-/**
- * @brief Frees all memory associated with a 'layer' structure and its conetents.
- *
- * @param layer Pointer to the layer to be freed.
- */
-void free_layer(layer *layer);
-
-/**
- * @brief Frees all memory associated with a 'neural_network' structure and its conetents.
- *
- * @param nn Pointer to the neural network to be freed.
- */
-void free_neural_network(neural_network *nn);
+neural_network *get_neural_network(size_t network_length, const size_t *layers_length, size_t inputs_length, float (*activation_function)(float, bool));
 
 /**
  * @brief Computes the output of the neural network for the given inputs.
