@@ -82,11 +82,6 @@ neural_network *get_neural_network(size_t layer_length, const size_t *layer_leng
         }
     }
 
-    for (size_t i = 0; i < layer_length; i++) {
-        nn->layers[i]->prev_layer = (i == 0) ? NULL : nn->layers[i - 1];
-        nn->layers[i]->next_layer = (i == layer_length - 1) ? NULL : nn->layers[i + 1];
-    }
-
     nn->activation_function = activation_function;
     return nn;
 }
@@ -115,18 +110,17 @@ void free_neural_network(neural_network *nn) {
 void compute_network(neural_network *nn, const float *inputs) {
     assert(nn && inputs);
 
-    layer *curr = nn->layers[0];
-    while (curr != NULL) {
-        layer *prev = curr->prev_layer;
-        if (prev == NULL) {
+    for (size_t i = 0; i < nn->length; i++) {
+        layer *curr = nn->layers[i];
+        if (i == 0) {
             cblas_sgemm(CblasColMajor, CblasNoTrans, CblasNoTrans, curr->length, 1, nn->inputs_length, 1.0f, curr->weights, curr->length, inputs, nn->inputs_length, 0.0f, curr->weighted_input, curr->length);
         } else {
+            layer *prev = nn->layers[i - 1];
             cblas_sgemm(CblasColMajor, CblasNoTrans, CblasNoTrans, curr->length, 1, prev->length, 1.0f, curr->weights, curr->length, prev->output, prev->length, 0.0f, curr->weighted_input, curr->length);
         }
 
         cblas_saxpy(curr->length, 1.0f, curr->bias, 1, curr->weighted_input, 1);
         vector_apply_activation(curr->weighted_input, curr->output, curr->length, nn->activation_function, false);
-        curr = curr->next_layer;
     }
 }
 
@@ -223,8 +217,6 @@ void layer_learn(neural_network *nn, size_t layer_index, float learn_rate, const
     assert(nn && data);
 
     layer *curr_layer = nn->layers[layer_index];
-    layer *prev_layer = curr_layer->prev_layer;
-    layer *next_layer = curr_layer->next_layer;
 
     // f'(Z_i) in weighted_input
     vector_apply_activation(curr_layer->weighted_input, curr_layer->weighted_input, curr_layer->length, nn->activation_function, true);
@@ -233,6 +225,7 @@ void layer_learn(neural_network *nn, size_t layer_index, float learn_rate, const
         curr_layer->output[data->expected_index] -= 1.0f;
     } else {
         // W^T_{i+1}δ_{i+1} in output
+        layer *next_layer = nn->layers[layer_index + 1];
         cblas_sgemm(CblasColMajor, CblasTrans, CblasNoTrans, curr_layer->length, 1, next_layer->length, 1.0f, next_layer->weights, next_layer->length, next_layer->delta, next_layer->length, 0.0f, curr_layer->output, curr_layer->length);
     }
 
@@ -244,6 +237,7 @@ void layer_learn(neural_network *nn, size_t layer_index, float learn_rate, const
         cblas_sger(CblasColMajor, curr_layer->length, nn->inputs_length, 1.0f, curr_layer->delta, 1, data->inputs, 1, weight_gradient, curr_layer->length);
         cblas_saxpy(curr_layer->length * nn->inputs_length, -learn_rate, weight_gradient, 1, curr_layer->weights, 1);
     } else {
+        layer *prev_layer = nn->layers[layer_index - 1];
         weight_gradient = calloc(curr_layer->length * prev_layer->length, sizeof(float));
         cblas_sger(CblasColMajor, curr_layer->length, prev_layer->length, 1.0f, curr_layer->delta, 1, prev_layer->output, 1, weight_gradient, curr_layer->length);
         cblas_saxpy(curr_layer->length * prev_layer->length, -learn_rate, weight_gradient, 1, curr_layer->weights, 1);
@@ -259,8 +253,6 @@ void layer_learn_collect_gradient(neural_network *nn, float *layer_weights_gradi
     assert(nn && layer_weights_gradients && layer_bias_gradients && data);
 
     layer *curr_layer = nn->layers[layer_index];
-    layer *prev_layer = curr_layer->prev_layer;
-    layer *next_layer = curr_layer->next_layer;
 
     // f'(Z_i) in weighted_input
     vector_apply_activation(curr_layer->weighted_input, curr_layer->weighted_input, curr_layer->length, nn->activation_function, true);
@@ -269,6 +261,7 @@ void layer_learn_collect_gradient(neural_network *nn, float *layer_weights_gradi
         curr_layer->output[data->expected_index] -= 1.0f;
     } else {
         // W^T_{i+1}δ_{i+1} in output
+        layer *next_layer = nn->layers[layer_index + 1];
         cblas_sgemm(CblasColMajor, CblasTrans, CblasNoTrans, curr_layer->length, 1, next_layer->length, 1.0f, next_layer->weights, next_layer->length, next_layer->delta, next_layer->length, 0.0f, curr_layer->output, curr_layer->length);
     }
 
@@ -277,6 +270,7 @@ void layer_learn_collect_gradient(neural_network *nn, float *layer_weights_gradi
     if (layer_index == 0) {
         cblas_sger(CblasColMajor, curr_layer->length, nn->inputs_length, 1.0f, curr_layer->delta, 1, data->inputs, 1, layer_weights_gradients, curr_layer->length);
     } else {
+        layer *prev_layer = nn->layers[layer_index - 1];
         cblas_sger(CblasColMajor, curr_layer->length, prev_layer->length, 1.0f, curr_layer->delta, 1, prev_layer->output, 1, layer_weights_gradients, curr_layer->length);
     }
 
@@ -384,7 +378,7 @@ bool save_network(const char *filename, neural_network *nn) {
     }
 
     for (size_t i = 0; i < nn->length; i++) {
-        size_t weights_length = nn->layers[i]->length * ((i == 0) ? nn->inputs_length : nn->layers[i]->prev_layer->length);
+        size_t weights_length = nn->layers[i]->length * ((i == 0) ? nn->inputs_length : nn->layers[i - 1]->length);
 
         if (fwrite(&(nn->layers[i]->length), sizeof(uint64_t), 1, file) != 1 || fwrite(nn->layers[i]->weights, sizeof(float), weights_length, file) != weights_length || fwrite(nn->layers[i]->bias, sizeof(float), nn->layers[i]->length, file) != nn->layers[i]->length) {
             fprintf(stderr, "Failed to write layer %zu data to '%s'\n", i, filename);
@@ -437,7 +431,7 @@ bool load_network(const char *filename, neural_network *nn) {
             goto cleanup;
         }
 
-        size_t weights_length = nn->layers[i]->length * ((i == 0) ? nn->inputs_length : nn->layers[i]->prev_layer->length);
+        size_t weights_length = nn->layers[i]->length * ((i == 0) ? nn->inputs_length : nn->layers[i - 1]->length);
         if (fread(nn->layers[i]->weights, sizeof(float), weights_length, file) != weights_length || fread(nn->layers[i]->bias, sizeof(float), nn->layers[i]->length, file) != nn->layers[i]->length) {
             fprintf(stderr, "Failed to read layer %zu data from '%s'\n", i, filename);
             goto cleanup;

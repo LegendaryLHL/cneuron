@@ -54,8 +54,6 @@ TEST(NetworkTest, GetNeuralNetwork) {
     for (size_t i = 0; i < layer_length; i++) {
         ASSERT_NE(nn->layers[i], nullptr);
         ASSERT_EQ(nn->layers[i]->length, layer_lengths[i]);
-        ASSERT_EQ(nn->layers[i]->prev_layer, (i == 0) ? nullptr : nn->layers[i - 1]);
-        ASSERT_EQ(nn->layers[i]->next_layer, (i == layer_length - 1) ? nullptr : nn->layers[i + 1]);
     }
 
     free_neural_network(nn);

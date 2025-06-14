@@ -142,14 +142,12 @@ void hadamard_product(const float *a, const float *b, float *c, size_t length);
  * @brief Represents a single layer in a neural network.
  */
 typedef struct layer {
-    float *delta;             /**< Error delta for backpropagation. */
-    float *weighted_input;    /**< Weighted input values for the layer. */
-    float *weights;           /**< Weights of the layer in column-major format. */
-    float *bias;              /**< Bias values for the layer. */
-    float *output;            /**< Output values from the layer. */
-    struct layer *prev_layer; /**< Pointer to the previous layer in the network. */
-    struct layer *next_layer; /**< Pointer to the next layer in the network. */
-    size_t length;            /**< Number of neurons in this layer. */
+    float *delta;          /**< Error delta for backpropagation. */
+    float *weighted_input; /**< Weighted input values for the layer. */
+    float *weights;        /**< Weights of the layer in column-major format. */
+    float *bias;           /**< Bias values for the layer. */
+    float *output;         /**< Output values from the layer. */
+    size_t length;         /**< Number of neurons in this layer. */
 } layer;
 
 /**
