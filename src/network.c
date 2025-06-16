@@ -13,7 +13,6 @@
 #endif
 
 #include "cneuron/cneuron.h"
-#include "rand.h"
 
 neural_network *alloc_neural_network(size_t network_length, const size_t *layers_length, size_t inputs_length) {
     size_t total_float = 0;

@@ -7,7 +7,6 @@
 #include <string.h>
 
 #include "cneuron/cneuron.h"
-#include "rand.h"
 
 data *alloc_data(size_t inputs_length) {
     data *new_data = malloc(sizeof(data) + sizeof(float) * inputs_length);
