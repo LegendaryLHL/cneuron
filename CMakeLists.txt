@@ -17,11 +17,9 @@ option(ENABLE_TESTING "Enable C++ and testing features" ON)
 
 enable_testing()
 
+find_package(OpenMP REQUIRED)
 if(NOT DEFINED BLA_VENDOR)
     set(BLA_VENDOR OpenBLAS)
-endif()
-if(BLA_VENDOR STREQUAL "OpenBLAS")
-    add_compile_definitions(USE_OPENBLAS)
 endif()
 
 find_package(BLAS REQUIRED)
@@ -65,7 +63,7 @@ target_include_directories(libcneuron PRIVATE ${INCLUDE_FOLDER})
 
 # Main executable
 add_executable(${PROJECT_NAME} src/main.c)
-target_link_libraries(${PROJECT_NAME} PRIVATE libcneuron)
+target_link_libraries(${PROJECT_NAME} PRIVATE libcneuron OpenMP::OpenMP_C)
 target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_SOURCE_DIR}/include ${CMAKE_SOURCE_DIR}/external)
 
 # Test executable

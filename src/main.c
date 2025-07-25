@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <omp.h>
 
 #ifdef USE_THREADING
 #include <pthread.h>
@@ -127,9 +128,7 @@ dataset *get_mnist(bool is_test) {
 }
 
 int main(int argc, char **argv) {
-#ifdef USE_OPENBLAS
-    openblas_set_num_threads(1);
-#endif
+    omp_set_num_threads(1);
 
     dataset *train_dataset = get_mnist(false);
     dataset *test_dataset = get_mnist(true);
