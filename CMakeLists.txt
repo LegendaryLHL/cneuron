@@ -19,10 +19,13 @@ enable_testing()
 
 if(NOT DEFINED BLA_VENDOR)
     set(BLA_VENDOR OpenBLAS)
+endif()
+if(BLA_VENDOR STREQUAL "OpenBLAS")
     add_compile_definitions(USE_OPENBLAS)
 endif()
-message(STATUS "Using BLAS vendor: ${BLA_VENDOR}")
+
 find_package(BLAS REQUIRED)
+message(STATUS "Using BLAS vendor: ${BLA_VENDOR}")
 
 if(ENABLE_TESTING)
     find_package(GTest REQUIRED)
@@ -33,7 +36,7 @@ file(GLOB_RECURSE TEST_FILES test/*.cpp)
 
 set(SANITIZE_FLAGS -fsanitize=address -fsanitize=undefined -fno-omit-frame-pointer)
 set(WARNING_FLAGS -Wall -Wextra -Wpedantic)
-set(RELEASE_FLAGS -O3 -DNDEBUG -march=native)
+set(RELEASE_FLAGS -O3 -DNDEBUG -march=native -mtune=native)
 set(PROFILE_FLAG -O3 -p -g)
 
 set(INCLUDE_FOLDER ${CMAKE_SOURCE_DIR}/include ${CMAKE_SOURCE_DIR}/external ${CMAKE_SOURCE_DIR}/src)
@@ -51,6 +54,7 @@ if(CMAKE_BUILD_TYPE STREQUAL "Debug")
 elseif(CMAKE_BUILD_TYPE STREQUAL "Profile")
     add_compile_options(${PROFILE_FLAG})
 elseif(CMAKE_BUILD_TYPE STREQUAL "Release")
+    set(CMAKE_INTERPROCEDURAL_OPTIMIZATION_RELEASE TRUE)
     add_compile_options(${RELEASE_FLAGS})
 endif()
 
